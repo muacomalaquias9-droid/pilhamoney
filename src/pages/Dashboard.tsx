@@ -104,7 +104,7 @@ const Dashboard = () => {
           <Link to="/"><Logo size="sm" /></Link>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon"><Bell size={18} /></Button>
-            <Button variant="ghost" size="icon"><Settings size={18} /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/settings/profile")}><Settings size={18} /></Button>
             <Button variant="ghost" size="icon" onClick={handleLogout}><LogOut size={18} /></Button>
           </div>
         </div>
