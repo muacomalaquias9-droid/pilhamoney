@@ -14,7 +14,7 @@ import PaymentIcons from "@/components/PaymentIcons";
 const quickAmounts = [5, 10, 25, 50, 100];
 
 const UserProfile = () => {
-  const { username } = useParams<{ username: string }>();
+  const { identifier } = useParams<{ identifier: string }>();
   const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
@@ -24,33 +24,37 @@ const UserProfile = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [donationCount, setDonationCount] = useState(0);
   const success = searchParams.get("success") === "true";
+  const normalizedIdentifier = identifier?.trim().replace(/^@/, "") ?? "";
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!username) return;
+      if (!normalizedIdentifier) {
+        setProfile(null);
+        setProfileLoading(false);
+        return;
+      }
 
-      // Try by username first
+      setProfileLoading(true);
+
       let { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("username", username)
+        .eq("username", normalizedIdentifier)
         .maybeSingle();
 
-      // If not found, try by UUID
       if (!data) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidRegex.test(username)) {
+        if (uuidRegex.test(normalizedIdentifier)) {
           const { data: byId } = await supabase
             .from("profiles")
             .select("*")
-            .eq("id", username)
+            .eq("id", normalizedIdentifier)
             .maybeSingle();
           data = byId;
         }
       }
 
       setProfile(data);
-      setProfileLoading(false);
 
       if (data) {
         const { count } = await supabase
@@ -59,10 +63,15 @@ const UserProfile = () => {
           .eq("recipient_id", data.id)
           .eq("status", "completed");
         setDonationCount(count || 0);
+      } else {
+        setDonationCount(0);
       }
+
+      setProfileLoading(false);
     };
+
     fetchProfile();
-  }, [username]);
+  }, [normalizedIdentifier]);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,9 +122,9 @@ const UserProfile = () => {
             Doação enviada! 🎉
           </h1>
           <p className="mb-6 text-muted-foreground">
-            Obrigado pela sua generosidade para @{username}
+            Obrigado pela sua generosidade para @{profile?.username || normalizedIdentifier}
           </p>
-          <Link to={`/@${username}`}>
+          <Link to={`/@${profile?.username || normalizedIdentifier}`}>
             <Button variant="outline" className="gap-2">
               <ArrowBack /> Voltar ao perfil
             </Button>
@@ -142,7 +151,7 @@ const UserProfile = () => {
         <h1 className="mb-2 font-display text-2xl font-bold text-foreground">
           Usuário não encontrado
         </h1>
-        <p className="mb-6 text-muted-foreground">@{username} não existe na plataforma.</p>
+        <p className="mb-6 text-muted-foreground">{identifier} não existe na plataforma.</p>
         <Link to="/">
           <Button variant="outline">Voltar ao início</Button>
         </Link>
@@ -189,6 +198,7 @@ const UserProfile = () => {
                   {profile.full_name || profile.username}
                 </h1>
                 <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                <p className="mt-1 break-all text-xs text-muted-foreground">UUID: {profile.id}</p>
                 {profile.bio && (
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{profile.bio}</p>
                 )}
@@ -215,7 +225,7 @@ const UserProfile = () => {
                 Enviar uma doação
               </h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Apoie {profile.full_name || profile.username} com qualquer valor
+                Apoie {profile.full_name || profile.username} com qualquer valor via Stripe
               </p>
             </div>
 
