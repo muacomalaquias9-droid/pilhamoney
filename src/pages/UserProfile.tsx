@@ -151,7 +151,7 @@ const UserProfile = () => {
         <h1 className="mb-2 font-display text-2xl font-bold text-foreground">
           Usuário não encontrado
         </h1>
-        <p className="mb-6 text-muted-foreground">@{username} não existe na plataforma.</p>
+        <p className="mb-6 text-muted-foreground">{identifier} não existe na plataforma.</p>
         <Link to="/">
           <Button variant="outline">Voltar ao início</Button>
         </Link>
