@@ -122,9 +122,9 @@ const UserProfile = () => {
             Doação enviada! 🎉
           </h1>
           <p className="mb-6 text-muted-foreground">
-            Obrigado pela sua generosidade para @{username}
+            Obrigado pela sua generosidade para @{profile?.username || normalizedIdentifier}
           </p>
-          <Link to={`/@${username}`}>
+          <Link to={`/@${profile?.username || normalizedIdentifier}`}>
             <Button variant="outline" className="gap-2">
               <ArrowBack /> Voltar ao perfil
             </Button>
