@@ -225,7 +225,7 @@ const UserProfile = () => {
                 Enviar uma doação
               </h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Apoie {profile.full_name || profile.username} com qualquer valor
+                Apoie {profile.full_name || profile.username} com qualquer valor via Stripe
               </p>
             </div>
 
