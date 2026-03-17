@@ -215,31 +215,16 @@ const Dashboard = () => {
           </Card>
         </motion.div>
 
-        {showWithdrawModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md rounded-2xl bg-card p-6 shadow-lg">
-              <h2 className="mb-4 font-display text-xl font-bold text-card-foreground">Sacar Fundos</h2>
-              <p className="mb-4 text-sm text-muted-foreground">Saldo: ${balance.toFixed(2)}</p>
-              <div className="space-y-3 mb-4">
-                {[
-                  { name: "Bybit / Binance", desc: "Via e-mail da conta" },
-                  { name: "Redotpay", desc: "Via número do cartão" },
-                  { name: "Visa / MasterCard", desc: "Direto no cartão" },
-                ].map((m) => (
-                  <div key={m.name} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-secondary/50 transition-colors">
-                    <CreditCard size={18} className="text-muted-foreground" />
-                    <div>
-                      <div className="text-sm font-medium text-card-foreground">{m.name}</div>
-                      <div className="text-xs text-muted-foreground">{m.desc}</div>
-                    </div>
-                    <ChevronRight size={16} className="ml-auto text-muted-foreground" />
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full" onClick={() => setShowWithdrawModal(false)}>Fechar</Button>
-            </motion.div>
-          </div>
-        )}
+        <WithdrawModal
+          open={showWithdrawModal}
+          onClose={() => setShowWithdrawModal(false)}
+          balance={balance}
+          userId={user!.id}
+          onSuccess={() => {
+            // Refresh data
+            supabase.from("wallets").select("*").eq("user_id", user!.id).maybeSingle().then(({ data }) => setWallet(data));
+          }}
+        />
       </div>
     </div>
   );
