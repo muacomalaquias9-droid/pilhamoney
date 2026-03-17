@@ -198,6 +198,7 @@ const UserProfile = () => {
                   {profile.full_name || profile.username}
                 </h1>
                 <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                <p className="mt-1 break-all text-xs text-muted-foreground">UUID: {profile.id}</p>
                 {profile.bio && (
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{profile.bio}</p>
                 )}
