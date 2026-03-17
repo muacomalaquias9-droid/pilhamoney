@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Wallet, ArrowUpRight, ArrowDownLeft, Send, CreditCard,
-  Copy, LogOut, User, Settings, Bell, TrendingUp, ChevronRight,
+  Wallet, ArrowUpRight, ArrowDownLeft, Send,
+  Copy, LogOut, User, Settings, Bell, TrendingUp,
   DollarSign, Eye, EyeOff
 } from "lucide-react";
+import WithdrawModal from "@/components/WithdrawModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "@/components/Logo";
