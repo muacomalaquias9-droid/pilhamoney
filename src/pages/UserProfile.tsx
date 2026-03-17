@@ -14,7 +14,7 @@ import PaymentIcons from "@/components/PaymentIcons";
 const quickAmounts = [5, 10, 25, 50, 100];
 
 const UserProfile = () => {
-  const { username } = useParams<{ username: string }>();
+  const { identifier } = useParams<{ identifier: string }>();
   const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
@@ -24,33 +24,37 @@ const UserProfile = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [donationCount, setDonationCount] = useState(0);
   const success = searchParams.get("success") === "true";
+  const normalizedIdentifier = identifier?.trim().replace(/^@/, "") ?? "";
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!username) return;
+      if (!normalizedIdentifier) {
+        setProfile(null);
+        setProfileLoading(false);
+        return;
+      }
 
-      // Try by username first
+      setProfileLoading(true);
+
       let { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("username", username)
+        .eq("username", normalizedIdentifier)
         .maybeSingle();
 
-      // If not found, try by UUID
       if (!data) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidRegex.test(username)) {
+        if (uuidRegex.test(normalizedIdentifier)) {
           const { data: byId } = await supabase
             .from("profiles")
             .select("*")
-            .eq("id", username)
+            .eq("id", normalizedIdentifier)
             .maybeSingle();
           data = byId;
         }
       }
 
       setProfile(data);
-      setProfileLoading(false);
 
       if (data) {
         const { count } = await supabase
@@ -59,10 +63,15 @@ const UserProfile = () => {
           .eq("recipient_id", data.id)
           .eq("status", "completed");
         setDonationCount(count || 0);
+      } else {
+        setDonationCount(0);
       }
+
+      setProfileLoading(false);
     };
+
     fetchProfile();
-  }, [username]);
+  }, [normalizedIdentifier]);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
