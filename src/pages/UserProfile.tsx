@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, MessageSquare, CheckCircle, Shield, User, ExternalLink } from "lucide-react";
+import { Heart, MessageSquare, CheckCircle, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import logo from "@/assets/logo.png";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import PaymentIcons from "@/components/PaymentIcons";
 
 const quickAmounts = [5, 10, 25, 50, 100];
 
@@ -27,11 +28,27 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (!username) return;
-      const { data } = await supabase
+
+      // Try by username first
+      let { data } = await supabase
         .from("profiles")
         .select("*")
         .eq("username", username)
         .maybeSingle();
+
+      // If not found, try by UUID
+      if (!data) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(username)) {
+          const { data: byId } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", username)
+            .maybeSingle();
+          data = byId;
+        }
+      }
+
       setProfile(data);
       setProfileLoading(false);
 
@@ -59,12 +76,12 @@ const UserProfile = () => {
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
-          recipient_username: username,
+          recipient_username: profile.username,
           amount: Math.round(amountNum * 100),
           message,
           donor_name: donorName || "Anônimo",
-          success_url: `${window.location.origin}/@${username}?success=true`,
-          cancel_url: `${window.location.origin}/@${username}`,
+          success_url: `${window.location.origin}/@${profile.username}?success=true`,
+          cancel_url: `${window.location.origin}/@${profile.username}`,
         },
       });
 
@@ -137,7 +154,6 @@ const UserProfile = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-secondary/30">
-      {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
@@ -145,9 +161,7 @@ const UserProfile = () => {
             <span className="font-display text-sm font-bold text-foreground">Pilha-Money</span>
           </Link>
           <Link to="/auth">
-            <Button variant="ghost" size="sm" className="text-xs">
-              Entrar
-            </Button>
+            <Button variant="ghost" size="sm" className="text-xs">Entrar</Button>
           </Link>
         </div>
       </header>
@@ -163,16 +177,10 @@ const UserProfile = () => {
             <div className="flex items-start gap-4">
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-3 border-primary/20 bg-muted">
                 {profile.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.full_name}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={profile.avatar_url} alt={profile.full_name} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-primary/10">
-                    <span className="font-display text-2xl font-bold text-primary">
-                      {initial}
-                    </span>
+                    <span className="font-display text-2xl font-bold text-primary">{initial}</span>
                   </div>
                 )}
               </div>
@@ -182,9 +190,7 @@ const UserProfile = () => {
                 </h1>
                 <p className="text-sm text-muted-foreground">@{profile.username}</p>
                 {profile.bio && (
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {profile.bio}
-                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{profile.bio}</p>
                 )}
                 <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -214,11 +220,8 @@ const UserProfile = () => {
             </div>
 
             <form onSubmit={handlePayment} className="space-y-5 p-6">
-              {/* Quick amounts */}
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-card-foreground">
-                  Valor da doação
-                </label>
+                <label className="mb-2.5 block text-sm font-medium text-card-foreground">Valor da doação</label>
                 <div className="grid grid-cols-5 gap-2">
                   {quickAmounts.map((val) => (
                     <button
@@ -237,15 +240,10 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              {/* Custom amount */}
               <div>
-                <label className="mb-1.5 block text-xs text-muted-foreground">
-                  Ou digite um valor personalizado
-                </label>
+                <label className="mb-1.5 block text-xs text-muted-foreground">Ou digite um valor personalizado</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">
-                    $
-                  </span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">$</span>
                   <Input
                     type="number"
                     step="0.01"
@@ -259,11 +257,8 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              {/* Donor name */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-card-foreground">
-                  Seu nome
-                </label>
+                <label className="mb-1.5 block text-sm font-medium text-card-foreground">Seu nome</label>
                 <Input
                   placeholder="Anônimo"
                   value={donorName}
@@ -273,7 +268,6 @@ const UserProfile = () => {
                 />
               </div>
 
-              {/* Message */}
               <div>
                 <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-card-foreground">
                   <MessageSquare size={14} /> Mensagem
@@ -286,31 +280,13 @@ const UserProfile = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   maxLength={200}
                 />
-                <div className="mt-1 text-right text-xs text-muted-foreground">
-                  {message.length}/200
-                </div>
+                <div className="mt-1 text-right text-xs text-muted-foreground">{message.length}/200</div>
               </div>
 
-              {/* Payment brands */}
-              <div className="flex items-center justify-center gap-4 py-1">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <svg viewBox="0 0 24 24" className="h-6 w-auto" fill="currentColor">
-                    <path d="M9.112 8.262L5.97 15.758H3.92L2.374 9.775c-.094-.368-.175-.503-.461-.658C1.447 8.864.677 8.627 0 8.479l.046-.217h3.3a.904.904 0 01.894.764l.817 4.338 2.018-5.102h2.037zm8.033 5.049c.008-1.979-2.736-2.088-2.717-2.972.006-.269.262-.555.822-.628a3.66 3.66 0 011.913.336l.34-1.59a5.207 5.207 0 00-1.814-.333c-1.917 0-3.266 1.02-3.278 2.481-.013 1.08.964 1.684 1.7 2.044.756.368 1.01.604 1.006.933-.005.504-.602.726-1.16.735-.974.015-1.54-.263-1.992-.474l-.351 1.642c.453.208 1.289.39 2.156.398 2.037 0 3.37-1.006 3.375-2.572zm5.061 2.447H24l-1.565-7.496h-1.656a.883.883 0 00-.826.55l-2.909 6.946h2.036l.405-1.12h2.488l.233 1.12zm-2.163-2.656l1.02-2.815.588 2.815h-1.608zm-8.16 2.656l1.603-7.496H11.46l-1.603 7.496h2.026z"/>
-                  </svg>
-                  <svg viewBox="0 0 24 24" className="h-6 w-auto" fill="currentColor">
-                    <path d="M15.245 17.831h-6.49V6.168h6.49v11.663z"/>
-                    <path d="M9.167 12a7.404 7.404 0 012.833-5.832 7.431 7.431 0 00-4.636-1.621C3.596 4.547.5 7.886.5 12s3.096 7.453 6.864 7.453A7.43 7.43 0 0012 17.832 7.404 7.404 0 019.167 12z"/>
-                    <path d="M23.5 12c0 4.114-3.096 7.453-6.864 7.453A7.432 7.432 0 0112 17.832 7.404 7.404 0 0014.833 12 7.404 7.404 0 0012 6.168a7.431 7.431 0 014.636-1.621C20.404 4.547 23.5 7.886 23.5 12z"/>
-                  </svg>
-                </div>
-              </div>
+              {/* Payment brand icons */}
+              <PaymentIcons />
 
-              <Button
-                type="submit"
-                className="w-full gap-2 rounded-xl text-base"
-                size="lg"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full gap-2 rounded-xl text-base" size="lg" disabled={loading}>
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="loading-spinner h-4 w-4" /> Processando...
@@ -335,7 +311,6 @@ const UserProfile = () => {
   );
 };
 
-// Simple arrow back icon
 const ArrowBack = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19 12H5M12 19l-7-7 7-7" />
