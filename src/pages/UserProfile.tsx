@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, MessageSquare, CheckCircle, Shield, User } from "lucide-react";
+import { Heart, MessageSquare, CheckCircle, Shield, User, Copy, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,12 +36,14 @@ const UserProfile = () => {
 
       setProfileLoading(true);
 
+      // Try by username first
       let { data } = await supabase
         .from("profiles")
         .select("*")
         .eq("username", normalizedIdentifier)
         .maybeSingle();
 
+      // Fallback: try by UUID
       if (!data) {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (uuidRegex.test(normalizedIdentifier)) {
@@ -106,6 +108,12 @@ const UserProfile = () => {
     }
   };
 
+  const copyProfileLink = () => {
+    const url = `${window.location.origin}/@${profile?.username || normalizedIdentifier}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link copiado!");
+  };
+
   if (success) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
@@ -162,86 +170,132 @@ const UserProfile = () => {
   const initial = (profile.full_name || profile.username || "U")[0].toUpperCase();
 
   return (
-    <div className="flex min-h-screen flex-col bg-secondary/30">
-      <header className="border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Pilha-Money" className="h-7 w-7" />
-            <span className="font-display text-sm font-bold text-foreground">Pilha-Money</span>
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src={logo} alt="Pilha-Money" className="h-8 w-8" />
+            <span className="font-display text-base font-bold text-foreground">Pilha-Money</span>
           </Link>
           <Link to="/auth">
-            <Button variant="ghost" size="sm" className="text-xs">Entrar</Button>
+            <Button variant="outline" size="sm" className="rounded-full text-xs font-medium">
+              Entrar
+            </Button>
           </Link>
         </div>
       </header>
 
-      <div className="flex-1">
-        <div className="container mx-auto max-w-lg px-4 py-8">
-          {/* Profile Card */}
+      <main className="flex-1">
+        <div className="mx-auto max-w-xl px-4 py-6 sm:py-10">
+          {/* Profile Hero */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm"
+            transition={{ duration: 0.4 }}
+            className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
           >
-            <div className="flex items-start gap-4">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-3 border-primary/20 bg-muted">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.full_name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-primary/10">
-                    <span className="font-display text-2xl font-bold text-primary">{initial}</span>
-                  </div>
-                )}
+            {/* Cover gradient */}
+            <div className="h-24 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5" />
+
+            <div className="relative px-5 pb-5">
+              {/* Avatar overlapping cover */}
+              <div className="-mt-12 mb-3 flex items-end justify-between">
+                <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-card bg-muted shadow-md">
+                  {profile.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.full_name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-primary/10">
+                      <span className="font-display text-3xl font-bold text-primary">{initial}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 pb-1">
+                  <button
+                    onClick={copyProfileLink}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    title="Copiar link"
+                  >
+                    <Copy size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `Doe para ${profile.full_name || profile.username}`,
+                          url: `${window.location.origin}/@${profile.username}`,
+                        });
+                      } else {
+                        copyProfileLink();
+                      }
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    title="Compartilhar"
+                  >
+                    <Share2 size={14} />
+                  </button>
+                </div>
               </div>
-              <div className="flex-1 pt-1">
-                <h1 className="font-display text-xl font-bold text-card-foreground">
-                  {profile.full_name || profile.username}
-                </h1>
-                <p className="text-sm text-muted-foreground">@{profile.username}</p>
-                <p className="mt-1 break-all text-xs text-muted-foreground">UUID: {profile.id}</p>
-                {profile.bio && (
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{profile.bio}</p>
-                )}
-                <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Heart size={12} className="text-primary" />
-                    {donationCount} {donationCount === 1 ? "doação" : "doações"}
-                  </span>
+
+              {/* Name & info */}
+              <h1 className="font-display text-xl font-bold leading-tight text-card-foreground">
+                {profile.full_name || profile.username}
+              </h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">@{profile.username}</p>
+
+              {profile.bio && (
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {profile.bio}
+                </p>
+              )}
+
+              <div className="mt-4 flex items-center gap-4 border-t border-border pt-4">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Heart size={14} className="text-primary" />
+                  <span className="font-medium">{donationCount}</span>
+                  <span>{donationCount === 1 ? "doação" : "doações"}</span>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Donation Form */}
+          {/* Donation Form Card */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-2xl border border-border bg-card shadow-sm"
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
           >
-            <div className="border-b border-border px-6 py-4">
+            <div className="border-b border-border bg-muted/30 px-5 py-4">
               <h2 className="flex items-center gap-2 font-display text-base font-bold text-card-foreground">
                 <Heart size={16} className="text-primary" />
-                Enviar uma doação
+                Apoiar {profile.full_name || profile.username}
               </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Apoie {profile.full_name || profile.username} com qualquer valor via Stripe
+              <p className="mt-1 text-xs text-muted-foreground">
+                Pagamento seguro • Visa, Mastercard, Multicaixa Express, PayPay
               </p>
             </div>
 
-            <form onSubmit={handlePayment} className="space-y-5 p-6">
+            <form onSubmit={handlePayment} className="space-y-5 p-5">
+              {/* Quick amounts */}
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-card-foreground">Valor da doação</label>
+                <label className="mb-2 block text-sm font-medium text-card-foreground">
+                  Escolha um valor
+                </label>
                 <div className="grid grid-cols-5 gap-2">
                   {quickAmounts.map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setAmount(String(val))}
-                      className={`rounded-xl border py-2.5 text-sm font-bold transition-all ${
+                      className={`rounded-xl border-2 py-3 text-sm font-bold transition-all ${
                         amount === String(val)
-                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                          : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-primary/5"
+                          ? "border-primary bg-primary/10 text-primary shadow-sm"
+                          : "border-transparent bg-muted text-foreground hover:border-primary/30 hover:bg-muted/80"
                       }`}
                     >
                       ${val}
@@ -250,16 +304,21 @@ const UserProfile = () => {
                 </div>
               </div>
 
+              {/* Custom amount */}
               <div>
-                <label className="mb-1.5 block text-xs text-muted-foreground">Ou digite um valor personalizado</label>
+                <label className="mb-1.5 block text-xs text-muted-foreground">
+                  Ou digite outro valor
+                </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">
+                    $
+                  </span>
                   <Input
                     type="number"
                     step="0.01"
                     min="1"
                     placeholder="0.00"
-                    className="h-14 pl-10 text-2xl font-bold"
+                    className="h-14 rounded-xl pl-10 text-2xl font-bold"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
@@ -267,54 +326,66 @@ const UserProfile = () => {
                 </div>
               </div>
 
+              {/* Donor name */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-card-foreground">Seu nome</label>
+                <label className="mb-1.5 block text-sm font-medium text-card-foreground">
+                  Seu nome
+                </label>
                 <Input
                   placeholder="Anônimo"
                   value={donorName}
                   onChange={(e) => setDonorName(e.target.value)}
                   maxLength={100}
-                  className="h-11"
+                  className="h-11 rounded-xl"
                 />
               </div>
 
+              {/* Message */}
               <div>
                 <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-card-foreground">
                   <MessageSquare size={14} /> Mensagem
                 </label>
                 <Textarea
                   placeholder="Deixe uma mensagem de apoio..."
-                  className="resize-none"
+                  className="resize-none rounded-xl"
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   maxLength={200}
                 />
-                <div className="mt-1 text-right text-xs text-muted-foreground">{message.length}/200</div>
+                <div className="mt-1 text-right text-xs text-muted-foreground">
+                  {message.length}/200
+                </div>
               </div>
 
-              {/* Payment brand icons */}
+              {/* Payment icons */}
               <PaymentIcons />
 
-              <Button type="submit" className="w-full gap-2 rounded-xl text-base" size="lg" disabled={loading}>
+              {/* Submit button */}
+              <Button
+                type="submit"
+                className="w-full gap-2 rounded-xl py-6 text-base font-bold"
+                size="lg"
+                disabled={loading}
+              >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="loading-spinner h-4 w-4" /> Processando...
                   </span>
                 ) : (
                   <>
-                    <Heart size={18} /> Enviar ${amount || "0.00"}
+                    <Heart size={18} /> Doar ${amount || "0.00"}
                   </>
                 )}
               </Button>
 
               <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-                <Shield size={12} /> Pagamento seguro via Stripe
+                <Shield size={12} /> Pagamento seguro e criptografado
               </p>
             </form>
           </motion.div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>
