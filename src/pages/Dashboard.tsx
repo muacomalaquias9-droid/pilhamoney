@@ -164,7 +164,7 @@ const Dashboard = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10"><ArrowDownLeft size={18} className="text-primary" /></div>
               <div>
                 <div className="text-sm text-muted-foreground">Total Recebido</div>
-                <div className="font-display text-lg font-bold text-card-foreground">${totalReceived.toFixed(2)}</div>
+                <div className="font-display text-lg font-bold text-card-foreground">{totalReceived.toLocaleString("pt-AO")} AOA</div>
               </div>
             </CardContent>
           </Card>
