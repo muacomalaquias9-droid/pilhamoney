@@ -108,7 +108,7 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      amount: 1,
+      amount,
     };
 
     console.log("PlinqPay request:", JSON.stringify(plinqPayload));
