@@ -133,7 +133,7 @@ const Dashboard = () => {
               </div>
               <div className="mb-1 text-sm opacity-70">Saldo disponível</div>
               <div className="mb-4 font-display text-3xl font-bold">
-                {showBalance ? `$${balance.toFixed(2)}` : "••••••"}
+                {showBalance ? `${balance.toLocaleString("pt-AO")} AOA` : "••••••"}
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <span className="opacity-70">@{profile.username}</span>
