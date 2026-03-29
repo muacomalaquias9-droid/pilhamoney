@@ -85,8 +85,8 @@ const Dashboard = () => {
     );
   }
 
-  const balance = (wallet?.balance || 0) / 100;
-  const totalReceived = (wallet?.total_received || 0) / 100;
+  const balance = wallet?.balance || 0;
+  const totalReceived = wallet?.total_received || 0;
 
   const copyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/@${profile.username}`);
