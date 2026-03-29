@@ -85,8 +85,8 @@ const Dashboard = () => {
     );
   }
 
-  const balance = (wallet?.balance || 0) / 100;
-  const totalReceived = (wallet?.total_received || 0) / 100;
+  const balance = wallet?.balance || 0;
+  const totalReceived = wallet?.total_received || 0;
 
   const copyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/@${profile.username}`);
@@ -133,7 +133,7 @@ const Dashboard = () => {
               </div>
               <div className="mb-1 text-sm opacity-70">Saldo disponível</div>
               <div className="mb-4 font-display text-3xl font-bold">
-                {showBalance ? `$${balance.toFixed(2)}` : "••••••"}
+                {showBalance ? `${balance.toLocaleString("pt-AO")} AOA` : "••••••"}
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <span className="opacity-70">@{profile.username}</span>
@@ -164,7 +164,7 @@ const Dashboard = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10"><ArrowDownLeft size={18} className="text-primary" /></div>
               <div>
                 <div className="text-sm text-muted-foreground">Total Recebido</div>
-                <div className="font-display text-lg font-bold text-card-foreground">${totalReceived.toFixed(2)}</div>
+                <div className="font-display text-lg font-bold text-card-foreground">{totalReceived.toLocaleString("pt-AO")} AOA</div>
               </div>
             </CardContent>
           </Card>
@@ -206,7 +206,7 @@ const Dashboard = () => {
                           {d.message && <div className="text-xs text-muted-foreground">{d.message}</div>}
                         </div>
                       </div>
-                      <div className="font-medium text-primary">+${(d.amount / 100).toFixed(2)}</div>
+                      <div className="font-medium text-primary">+{d.amount.toLocaleString("pt-AO")} AOA</div>
                     </div>
                   ))}
                 </div>
