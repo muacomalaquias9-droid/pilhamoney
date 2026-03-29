@@ -206,7 +206,7 @@ const Dashboard = () => {
                           {d.message && <div className="text-xs text-muted-foreground">{d.message}</div>}
                         </div>
                       </div>
-                      <div className="font-medium text-primary">+${(d.amount / 100).toFixed(2)}</div>
+                      <div className="font-medium text-primary">+{d.amount.toLocaleString("pt-AO")} AOA</div>
                     </div>
                   ))}
                 </div>
