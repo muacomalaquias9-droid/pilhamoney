@@ -3,7 +3,7 @@ import { Zap, Shield, Heart, Star } from "lucide-react";
 
 const features = [
   { icon: Zap, title: "Instantâneo", desc: "Doações processadas em tempo real" },
-  { icon: Shield, title: "100% Seguro", desc: "Protegido com Stripe e criptografia" },
+  { icon: Shield, title: "100% Seguro", desc: "Protegido com PlinqPay e criptografia" },
   { icon: Heart, title: "Sem taxas ocultas", desc: "Transparência total nas transações" },
   { icon: Star, title: "Saques rápidos", desc: "Retire para Bybit, Binance ou cartão" },
 ];
