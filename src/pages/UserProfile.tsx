@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageSquare, CheckCircle, Shield, User, Copy, Share2, Phone } from "lucide-react";
+import { Heart, MessageSquare, CheckCircle, Shield, User, Copy, Share2, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,7 @@ const UserProfile = () => {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
   const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
   const [donorPhone, setDonorPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -114,6 +115,7 @@ const UserProfile = () => {
           amount: Math.round(amountNum),
           message,
           donor_name: donorName || "Anônimo",
+          donor_email: donorEmail,
           donor_phone: donorPhone,
         },
       });
@@ -148,6 +150,7 @@ const UserProfile = () => {
     setAmount("");
     setMessage("");
     setDonorName("");
+    setDonorEmail("");
     setDonorPhone("");
   };
 
@@ -407,6 +410,13 @@ const UserProfile = () => {
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-card-foreground">Seu nome</label>
                   <Input placeholder="Anônimo" value={donorName} onChange={(e) => setDonorName(e.target.value)} maxLength={100} className="h-11 rounded-xl" />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-card-foreground">
+                    <Mail size={14} /> E-mail (opcional)
+                  </label>
+                  <Input type="email" placeholder="voce@email.com" value={donorEmail} onChange={(e) => setDonorEmail(e.target.value)} maxLength={120} className="h-11 rounded-xl" />
                 </div>
 
                 {/* Donor phone */}

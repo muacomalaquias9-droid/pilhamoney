@@ -1,11 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { z } from "https://esm.sh/zod@3.24.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const bodySchema = z.object({
+  recipient_username: z.string().trim().min(1),
+  amount: z.number().int().min(100),
+  message: z.string().max(200).optional().default(""),
+  donor_name: z.string().trim().min(1).max(100).optional().default("Anônimo"),
+  donor_phone: z.string().trim().max(30).optional().default(""),
+  donor_email: z.string().trim().email().optional().or(z.literal("")),
+});
+
+const pickValue = <T,>(...values: T[]) => values.find((value) => value !== undefined && value !== null && value !== "");
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -20,7 +32,16 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { recipient_username, amount, message, donor_name, donor_phone } = await req.json();
+    const parsedBody = bodySchema.safeParse(await req.json());
+
+    if (!parsedBody.success) {
+      return new Response(
+        JSON.stringify({ error: parsedBody.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { recipient_username, amount, message, donor_name, donor_phone, donor_email } = parsedBody.data;
 
     if (!recipient_username || !amount || amount < 100) {
       return new Response(
@@ -51,6 +72,7 @@ serve(async (req) => {
         amount: amount,
         message: message || "",
         donor_name: donor_name || "Anônimo",
+        donor_email: donor_email || null,
         status: "pending",
         currency: "aoa",
       })
@@ -65,6 +87,10 @@ serve(async (req) => {
       );
     }
 
+    const fallbackEmail = `donation-${donation.id}@pilhamoney.app`;
+    const clientEmail = donor_email?.trim() || fallbackEmail;
+    const clientPhone = donor_phone?.trim() || "+244923000000";
+
     // Create PlinqPay transaction via their API
     const plinqPayload = {
       externalId: donation.id,
@@ -72,8 +98,8 @@ serve(async (req) => {
       method: "REFERENCE",
       client: {
         name: donor_name || "Anônimo",
-        email: "",
-        phone: donor_phone || "",
+        email: clientEmail,
+        phone: clientPhone,
       },
       items: [
         {
@@ -110,7 +136,28 @@ serve(async (req) => {
     }
 
     // Store plinqpay transaction id
-    const transactionId = plinqData.id || plinqData.transactionId || plinqData.externalId;
+    const transactionId = pickValue(
+      plinqData.id,
+      plinqData.transactionId,
+      plinqData.transaction?.id,
+      plinqData.data?.id,
+      plinqData.externalId,
+    );
+
+    const reference = pickValue(
+      plinqData.reference,
+      plinqData.referenceId,
+      plinqData.data?.reference,
+      plinqData.transaction?.reference,
+    );
+
+    const entity = pickValue(
+      plinqData.entity,
+      plinqData.data?.entity,
+      plinqData.transaction?.entity,
+      "01055",
+    );
+
     await supabase
       .from("donations")
       .update({ stripe_session_id: transactionId })
@@ -120,8 +167,8 @@ serve(async (req) => {
       JSON.stringify({
         donation_id: donation.id,
         transaction_id: transactionId,
-        reference: plinqData.reference || plinqData.referenceId,
-        entity: plinqData.entity || "01055",
+        reference,
+        entity,
         amount: amount,
         status: "pending",
         raw: plinqData,

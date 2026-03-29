@@ -6,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const pickValue = <T,>(...values: T[]) => values.find((value) => value !== undefined && value !== null && value !== "");
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,10 +21,33 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("PlinqPay webhook received:", JSON.stringify(payload));
 
-    // PlinqPay sends: { id, externalId, status, ... }
-    const externalId = payload.externalId || payload.external_id;
-    const transactionId = payload.id || payload.transactionId;
-    const status = (payload.status || "").toUpperCase();
+    const externalId = pickValue(
+      payload.externalId,
+      payload.external_id,
+      payload.data?.externalId,
+      payload.data?.external_id,
+      payload.transaction?.externalId,
+      payload.transaction?.external_id,
+    );
+
+    const transactionId = pickValue(
+      payload.id,
+      payload.transactionId,
+      payload.transaction_id,
+      payload.data?.id,
+      payload.data?.transactionId,
+      payload.transaction?.id,
+    );
+
+    const status = String(
+      pickValue(
+        payload.status,
+        payload.data?.status,
+        payload.transaction?.status,
+        payload.payment?.status,
+        "",
+      )
+    ).toUpperCase();
 
     // Try to find donation by externalId (which is the donation.id) or by stripe_session_id (transactionId)
     let donation = null;
@@ -65,7 +90,7 @@ serve(async (req) => {
       // Update donation status
       await supabase
         .from("donations")
-        .update({ status: "completed" })
+        .update({ status: "completed", stripe_session_id: transactionId || donation.stripe_session_id })
         .eq("id", donation.id);
 
       // Update wallet balance

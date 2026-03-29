@@ -22,9 +22,9 @@ const HeroSection = () => {
             <h1 className="mb-5 font-display text-4xl font-bold leading-[1.1] text-foreground md:text-5xl lg:text-6xl">
               Receba doações de qualquer lugar do mundo
             </h1>
-            <p className="mb-8 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
-              Crie seu perfil, compartilhe seu link e receba doações via Visa e MasterCard. Simples, seguro e instantâneo.
-            </p>
+              <p className="mb-8 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
+                Crie seu perfil, partilhe o seu link e receba doações via PlinqPay com referências Multicaixa Express. Simples, seguro e rápido.
+              </p>
             <div className="flex flex-wrap gap-3">
               <Link to="/auth?tab=register">
                 <Button size="lg" className="gap-2 rounded-full px-8 text-base">
@@ -87,7 +87,7 @@ const HeroSection = () => {
                 <Heart className="mr-2 inline h-4 w-4" /> Enviar Doação
               </div>
               <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Shield size={12} /> Pagamento seguro via Stripe
+                <Shield size={12} /> Pagamento seguro via PlinqPay
               </div>
             </div>
             {/* Floating element */}
