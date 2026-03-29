@@ -19,32 +19,49 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("PlinqPay webhook received:", JSON.stringify(payload));
 
-    const paymentId = payload.id || payload.payment_id;
-    const status = payload.status;
+    // PlinqPay sends: { id, externalId, status, ... }
+    const externalId = payload.externalId || payload.external_id;
+    const transactionId = payload.id || payload.transactionId;
+    const status = (payload.status || "").toUpperCase();
 
-    if (!paymentId) {
-      return new Response(JSON.stringify({ error: "Missing payment_id" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Try to find donation by externalId (which is the donation.id) or by stripe_session_id (transactionId)
+    let donation = null;
+
+    if (externalId) {
+      const { data } = await supabase
+        .from("donations")
+        .select("*")
+        .eq("id", externalId)
+        .maybeSingle();
+      donation = data;
     }
 
-    // Find the donation by plinqpay payment id (stored in stripe_session_id)
-    const { data: donation, error: donationError } = await supabase
-      .from("donations")
-      .select("*")
-      .eq("stripe_session_id", paymentId)
-      .maybeSingle();
+    if (!donation && transactionId) {
+      const { data } = await supabase
+        .from("donations")
+        .select("*")
+        .eq("stripe_session_id", transactionId)
+        .maybeSingle();
+      donation = data;
+    }
 
-    if (donationError || !donation) {
-      console.error("Donation not found for payment:", paymentId);
+    if (!donation) {
+      console.error("Donation not found for:", { externalId, transactionId });
       return new Response(JSON.stringify({ error: "Donation not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (status === "completed" || status === "paid" || status === "success") {
+    // Already completed? Skip
+    if (donation.status === "completed") {
+      return new Response(JSON.stringify({ received: true, already_completed: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (status === "COMPLETED" || status === "PAID" || status === "SUCCESS" || status === "APPROVED") {
       // Update donation status
       await supabase
         .from("donations")
@@ -67,16 +84,26 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           })
           .eq("id", wallet.id);
+      } else {
+        await supabase
+          .from("wallets")
+          .insert({
+            user_id: donation.recipient_id,
+            balance: donation.amount,
+            total_received: donation.amount,
+          });
       }
 
-      console.log("PlinqPay payment completed for donation:", donation.id);
-    } else if (status === "failed" || status === "cancelled" || status === "expired") {
+      console.log(`✅ PlinqPay payment completed for donation: ${donation.id}, amount: ${donation.amount} AOA`);
+    } else if (status === "FAILED" || status === "CANCELLED" || status === "EXPIRED" || status === "REJECTED") {
       await supabase
         .from("donations")
         .update({ status: "failed" })
         .eq("id", donation.id);
 
-      console.log("PlinqPay payment failed for donation:", donation.id);
+      console.log(`❌ PlinqPay payment failed for donation: ${donation.id}`);
+    } else {
+      console.log(`ℹ️ PlinqPay status update: ${status} for donation: ${donation.id}`);
     }
 
     return new Response(JSON.stringify({ received: true }), {

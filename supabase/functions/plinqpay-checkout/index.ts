@@ -13,25 +13,18 @@ serve(async (req) => {
   }
 
   try {
-    const plinqSecretKey = Deno.env.get("PLINQPAY_SECRET_KEY");
-    if (!plinqSecretKey) throw new Error("PLINQPAY_SECRET_KEY not configured");
+    const plinqApiKey = Deno.env.get("PLINQPAY_SECRET_KEY");
+    if (!plinqApiKey) throw new Error("PLINQPAY_SECRET_KEY not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { recipient_username, amount, message, donor_name, payment_method, success_url, cancel_url } = await req.json();
+    const { recipient_username, amount, message, donor_name, donor_phone } = await req.json();
 
     if (!recipient_username || !amount || amount < 100) {
       return new Response(
         JSON.stringify({ error: "Valor mínimo é 100 AOA" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!payment_method || !["multicaixa_express", "paypay", "reference"].includes(payment_method)) {
-      return new Response(
-        JSON.stringify({ error: "Método de pagamento inválido" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -72,54 +65,66 @@ serve(async (req) => {
       );
     }
 
-    // Create PlinqPay payment
-    const plinqPayload: any = {
-      amount: amount,
-      currency: "AOA",
-      description: `Doação para ${recipient.full_name || recipient.username}`,
-      payment_method: payment_method,
-      metadata: {
-        donation_id: donation.id,
-        recipient_id: recipient.id,
-        recipient_username: recipient.username,
+    // Create PlinqPay transaction via their API
+    const plinqPayload = {
+      externalId: donation.id,
+      callbackUrl: `${supabaseUrl}/functions/v1/plinqpay-webhook`,
+      method: "REFERENCE",
+      client: {
+        name: donor_name || "Anônimo",
+        email: "",
+        phone: donor_phone || "",
       },
-      callback_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/plinqpay-webhook`,
-      success_url: success_url || `${req.headers.get("origin")}/@${recipient_username}?success=true`,
-      cancel_url: cancel_url || `${req.headers.get("origin")}/@${recipient_username}`,
+      items: [
+        {
+          title: `Doação para ${recipient.full_name || recipient.username}`,
+          price: amount,
+          quantity: 1,
+        },
+      ],
+      amount: 1,
     };
 
-    const plinqResponse = await fetch("https://api.plinqpay.com/v1/payments", {
+    console.log("PlinqPay request:", JSON.stringify(plinqPayload));
+
+    const plinqResponse = await fetch("https://api.plinqpay.com/v1/transaction", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${plinqSecretKey}`,
         "Content-Type": "application/json",
+        "api-key": plinqApiKey,
       },
       body: JSON.stringify(plinqPayload),
     });
 
     const plinqData = await plinqResponse.json();
+    console.log("PlinqPay response:", JSON.stringify(plinqData));
 
     if (!plinqResponse.ok) {
       console.error("PlinqPay error:", plinqData);
+      // Clean up the donation
+      await supabase.from("donations").delete().eq("id", donation.id);
       return new Response(
-        JSON.stringify({ error: plinqData.message || "Erro ao processar pagamento PlinqPay" }),
+        JSON.stringify({ error: plinqData.message || "Erro ao processar pagamento" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Update donation with plinqpay payment id
+    // Store plinqpay transaction id
+    const transactionId = plinqData.id || plinqData.transactionId || plinqData.externalId;
     await supabase
       .from("donations")
-      .update({ stripe_session_id: plinqData.id || plinqData.payment_id })
+      .update({ stripe_session_id: transactionId })
       .eq("id", donation.id);
 
     return new Response(
       JSON.stringify({
-        url: plinqData.checkout_url || plinqData.payment_url || plinqData.url,
-        payment_id: plinqData.id || plinqData.payment_id,
-        reference: plinqData.reference,
-        qr_code: plinqData.qr_code,
-        payment_method: payment_method,
+        donation_id: donation.id,
+        transaction_id: transactionId,
+        reference: plinqData.reference || plinqData.referenceId,
+        entity: plinqData.entity || "01055",
+        amount: amount,
+        status: "pending",
+        raw: plinqData,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
