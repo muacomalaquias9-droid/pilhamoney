@@ -20,19 +20,9 @@ const VirtualCard = ({ balance, username, cardNumber, showBalance, onToggleBalan
   const formattedCard = cardNumber.replace(/(.{4})/g, "$1 ").trim();
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl p-6 text-white"
-      style={{
-        background: "linear-gradient(135deg, #0B6B3A 0%, #0A5C32 30%, #084D2A 60%, #063D21 100%)",
-        aspectRatio: "1.7/1",
-        maxHeight: "220px",
-      }}
-    >
+    <div className="wallet-card-surface relative w-full overflow-hidden rounded-2xl p-6 text-primary-foreground" style={{ aspectRatio: "1.7/1", maxHeight: "220px" }}>
       {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.2) 0%, transparent 40%)`,
-        }}
-      />
+      <div className="wallet-card-pattern absolute inset-0 opacity-[0.12]" />
 
       {/* Top row: logo + contactless + eye */}
       <div className="relative flex items-start justify-between">
@@ -50,11 +40,7 @@ const VirtualCard = ({ balance, username, cardNumber, showBalance, onToggleBalan
 
       {/* Chip */}
       <div className="relative mt-4 mb-3">
-        <div className="h-9 w-12 rounded-md overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #D4AF37 0%, #F0D060 30%, #C5A028 60%, #D4AF37 100%)",
-          }}
-        >
+        <div className="wallet-chip-surface h-9 w-12 rounded-md overflow-hidden">
           {/* Chip lines */}
           <div className="h-full w-full flex flex-col justify-center px-1 gap-[2px]">
             <div className="h-[1px] bg-black/15 w-full" />

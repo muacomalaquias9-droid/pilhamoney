@@ -40,6 +40,11 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --wallet-surface-start: 156 78% 28%;
+    --wallet-surface-mid: 156 76% 22%;
+    --wallet-surface-end: 155 72% 16%;
+    --wallet-chip-start: 45 82% 66%;
+    --wallet-chip-end: 43 66% 46%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -111,4 +116,20 @@
 /* Loading spinner */
 .loading-spinner {
   @apply animate-spin rounded-full border-2 border-muted border-t-primary;
+}
+
+.wallet-card-surface {
+  background: linear-gradient(135deg, hsl(var(--wallet-surface-start)) 0%, hsl(var(--wallet-surface-mid)) 42%, hsl(var(--wallet-surface-end)) 100%);
+  box-shadow: 0 18px 40px -24px hsl(var(--foreground) / 0.45);
+}
+
+.wallet-card-pattern {
+  background-image:
+    radial-gradient(circle at 18% 35%, hsl(var(--primary-foreground) / 0.42) 0%, transparent 32%),
+    radial-gradient(circle at 80% 22%, hsl(var(--primary-foreground) / 0.22) 0%, transparent 28%),
+    linear-gradient(120deg, transparent 0%, hsl(var(--primary-foreground) / 0.08) 48%, transparent 100%);
+}
+
+.wallet-chip-surface {
+  background: linear-gradient(135deg, hsl(var(--wallet-chip-start)) 0%, hsl(var(--wallet-chip-end)) 100%);
 }
