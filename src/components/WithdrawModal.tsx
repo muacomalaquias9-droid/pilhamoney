@@ -50,7 +50,7 @@ const WithdrawModal = ({ open, onClose, balance, userId, onSuccess }: WithdrawMo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const amt = parseFloat(withdrawAmount);
-    if (!amt || amt < 500) { toast.error("Valor mínimo é 500 AOA"); return; }
+    if (!amt || amt < 10000) { toast.error("Valor mínimo de saque é 10.000 AOA"); return; }
     if (amt > balance) { toast.error("Saldo insuficiente"); return; }
     if (!iban.trim() || iban.trim().length < 10) { toast.error("IBAN inválido"); return; }
     if (!biNumber.trim() || biNumber.trim().length < 8) { toast.error("Número do BI inválido"); return; }
