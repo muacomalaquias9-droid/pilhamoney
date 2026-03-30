@@ -17,13 +17,13 @@ const HeroSection = () => {
             transition={{ duration: 0.7 }}
           >
             <span className="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
-              Plataforma de Doações
+              Doações em Angola
             </span>
             <h1 className="mb-5 font-display text-4xl font-bold leading-[1.1] text-foreground md:text-5xl lg:text-6xl">
-              Receba doações de qualquer lugar do mundo
+              Receba apoio com referência Multicaixa Express
             </h1>
               <p className="mb-8 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
-                Crie seu perfil, partilhe o seu link e receba doações via PlinqPay com referências Multicaixa Express. Simples, seguro e rápido.
+                Crie seu perfil público, partilhe o seu link e receba doações em AOA com confirmação automática na sua carteira Pilha-Money.
               </p>
             <div className="flex flex-wrap gap-3">
               <Link to="/auth?tab=register">
@@ -66,7 +66,7 @@ const HeroSection = () => {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="relative mx-auto w-full max-w-sm"
           >
-            <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-primary/5">
+           <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-primary/5">
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                   <span className="font-display text-xl font-bold text-primary">I</span>
@@ -78,23 +78,23 @@ const HeroSection = () => {
               </div>
               <div className="mb-4 rounded-xl bg-secondary/60 p-4 text-center">
                 <div className="mb-1 text-xs text-muted-foreground">Valor da doação</div>
-                <div className="font-display text-4xl font-bold text-foreground">$25.00</div>
+                <div className="font-display text-4xl font-bold text-foreground">25.000 Kz</div>
               </div>
               <div className="mb-3 rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-                💬 Ótimo trabalho, continue assim!
+                💬 Força irmão, continua a construir em Angola.
               </div>
               <div className="rounded-xl bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">
                 <Heart className="mr-2 inline h-4 w-4" /> Enviar Doação
               </div>
               <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Shield size={12} /> Pagamento seguro via PlinqPay
+                <Shield size={12} /> Pagamento por referência via PlinqPay
               </div>
             </div>
             {/* Floating element */}
             <div className="absolute -right-4 -top-4 rounded-2xl border border-border bg-card px-4 py-2 shadow-lg">
               <div className="flex items-center gap-2 text-sm">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-xs">✓</span>
-                <span className="font-medium text-card-foreground">$50 recebido!</span>
+                <span className="font-medium text-card-foreground">Pagamento confirmado</span>
               </div>
             </div>
           </motion.div>

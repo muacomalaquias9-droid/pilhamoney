@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { Zap, Shield, Heart, Star } from "lucide-react";
 
 const features = [
-  { icon: Zap, title: "Instantâneo", desc: "Doações processadas em tempo real" },
-  { icon: Shield, title: "100% Seguro", desc: "Protegido com PlinqPay e criptografia" },
-  { icon: Heart, title: "Sem taxas ocultas", desc: "Transparência total nas transações" },
-  { icon: Star, title: "Saques rápidos", desc: "Retire para Bybit, Binance ou cartão" },
+  { icon: Zap, title: "Ao vivo", desc: "Saldo e doações atualizados em tempo real na carteira" },
+  { icon: Shield, title: "Seguro", desc: "Pagamentos por referência com confirmação automática" },
+  { icon: Heart, title: "Perfil público", desc: "Foto, nome, biografia e link único para receber apoio" },
+  { icon: Star, title: "Feito para Angola", desc: "Experiência pensada para AOA e Multicaixa Express" },
 ];
 
 const FeaturesStrip = () => (

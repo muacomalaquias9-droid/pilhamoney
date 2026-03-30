@@ -1,4 +1,4 @@
-import { ArrowDownLeft, Wallet } from "lucide-react";
+import DashboardGlyph from "@/components/dashboard/DashboardGlyph";
 
 interface DonationsListProps {
   donations: any[];
@@ -13,7 +13,9 @@ const DonationsList = ({ donations }: DonationsListProps) => {
   if (donations.length === 0) {
     return (
       <div className="py-10 text-center">
-        <Wallet className="mx-auto mb-3 h-12 w-12 text-muted-foreground/30" />
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground/50">
+            <DashboardGlyph name="wallet" className="h-6 w-6" />
+          </div>
         <p className="text-sm font-medium text-muted-foreground">Nenhuma doação ainda</p>
         <p className="text-xs text-muted-foreground/70 mt-1">Compartilhe seu link para começar a receber</p>
       </div>
@@ -25,8 +27,8 @@ const DonationsList = ({ donations }: DonationsListProps) => {
       {donations.map((d) => (
         <div key={d.id} className="flex items-center justify-between py-3 px-1 border-b border-border/50 last:border-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-              <ArrowDownLeft size={14} className="text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/60 bg-primary/10 text-primary">
+              <DashboardGlyph name="incoming" className="h-4 w-4" />
             </div>
             <div>
               <p className="text-sm font-medium text-card-foreground">{d.donor_name || "Anônimo"}</p>
