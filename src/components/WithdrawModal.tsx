@@ -152,7 +152,7 @@ const WithdrawModal = ({ open, onClose, balance, userId, onSuccess }: WithdrawMo
                   <Input
                     type="number"
                     step="1"
-                    min="500"
+                    min="10000"
                     max={balance}
                     placeholder="0"
                     className="h-12 pr-14 text-xl font-bold"
