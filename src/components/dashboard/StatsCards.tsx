@@ -1,4 +1,4 @@
-import DashboardGlyph from "@/components/dashboard/DashboardGlyph";
+import { TrendingUp, Heart, Wallet } from "lucide-react";
 
 interface StatsCardsProps {
   totalReceived: number;
@@ -9,34 +9,41 @@ interface StatsCardsProps {
 const StatsCards = ({ totalReceived, donationsCount, balance }: StatsCardsProps) => {
   const stats = [
     {
-      icon: "incoming",
-      label: "Total Recebido",
-      value: `${totalReceived.toLocaleString("pt-AO")} Kz`,
-      color: "text-primary bg-primary/10",
+      label: "Total recebido",
+      value: `${totalReceived.toLocaleString("pt-AO")}`,
+      suffix: "AOA",
+      icon: <TrendingUp size={16} />,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
-      icon: "growth",
       label: "Doações",
       value: String(donationsCount),
-      color: "text-warning bg-warning/10",
+      suffix: "",
+      icon: <Heart size={16} />,
+      color: "text-destructive",
+      bgColor: "bg-destructive/10",
     },
     {
-      icon: "wallet",
       label: "Disponível",
-      value: `${balance.toLocaleString("pt-AO")} Kz`,
-      color: "text-accent bg-accent/10",
+      value: `${balance.toLocaleString("pt-AO")}`,
+      suffix: "AOA",
+      icon: <Wallet size={16} />,
+      color: "text-accent",
+      bgColor: "bg-accent/10",
     },
   ];
 
   return (
     <div className="grid grid-cols-3 gap-2">
-      {stats.map(({ icon, label, value, color }) => (
-        <div key={label} className="rounded-2xl border border-border bg-card p-3 flex flex-col items-center text-center shadow-sm">
-          <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-2xl border border-border/60 ${color}`}>
-            <DashboardGlyph name={icon as "incoming" | "growth" | "wallet"} className="h-[17px] w-[17px]" />
+      {stats.map((stat) => (
+        <div key={stat.label} className="rounded-2xl border border-border bg-card p-3 text-center">
+          <div className={`mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-xl ${stat.bgColor} ${stat.color}`}>
+            {stat.icon}
           </div>
-          <p className="text-[10px] text-muted-foreground mb-0.5">{label}</p>
-          <p className="text-sm font-bold text-card-foreground">{value}</p>
+          <div className="font-display text-lg font-bold text-card-foreground leading-tight">{stat.value}</div>
+          {stat.suffix && <span className="text-[10px] font-medium text-muted-foreground">{stat.suffix}</span>}
+          <div className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</div>
         </div>
       ))}
     </div>

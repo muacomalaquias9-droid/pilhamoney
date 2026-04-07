@@ -24,8 +24,8 @@ serve(async (req) => {
       event = JSON.parse(body);
     }
   } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    console.error("Webhook signature verification failed:", (err as Error).message);
+    return new Response(`Webhook Error: ${(err as Error).message}`, { status: 400 });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

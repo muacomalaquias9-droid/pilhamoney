@@ -10,7 +10,7 @@ import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-const quickAmounts = [500, 1000, 2500, 5000, 10000];
+const quickAmounts = [1000, 2500, 5000, 10000, 25000];
 
 const UserProfile = () => {
   const { identifier } = useParams<{ identifier: string }>();
@@ -102,8 +102,8 @@ const UserProfile = () => {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     const amountNum = parseFloat(amount);
-    if (!amountNum || amountNum < 100) {
-      toast.error("Valor mínimo é 100 AOA");
+    if (!amountNum || amountNum < 1000) {
+      toast.error("Valor mínimo é 1.000 AOA");
       return;
     }
     setLoading(true);
@@ -395,7 +395,7 @@ const UserProfile = () => {
                     <Input
                       type="number"
                       step="1"
-                      min="100"
+                      min="1000"
                       placeholder="0"
                       className="h-14 rounded-xl pr-16 text-2xl font-bold"
                       value={amount}

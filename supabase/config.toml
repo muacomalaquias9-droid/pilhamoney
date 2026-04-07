@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.plinqpay-webhook]
 verify_jwt = false
+
+[functions.internal-transfer]
+verify_jwt = false
+
+[functions.totp-setup]
+verify_jwt = false
