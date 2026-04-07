@@ -102,8 +102,8 @@ const UserProfile = () => {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     const amountNum = parseFloat(amount);
-    if (!amountNum || amountNum < 100) {
-      toast.error("Valor mínimo é 100 AOA");
+    if (!amountNum || amountNum < 1000) {
+      toast.error("Valor mínimo é 1.000 AOA");
       return;
     }
     setLoading(true);
