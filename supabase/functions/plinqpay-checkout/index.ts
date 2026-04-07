@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const bodySchema = z.object({
   recipient_username: z.string().trim().min(1),
-  amount: z.number().int().min(100),
+  amount: z.number().int().min(1000),
   message: z.string().max(200).optional().default(""),
   donor_name: z.string().trim().min(1).max(100).optional().default("Anônimo"),
   donor_phone: z.string().trim().max(30).optional().default(""),
