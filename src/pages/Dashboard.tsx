@@ -85,6 +85,7 @@ const Dashboard = () => {
           <Link to="/"><Logo size="sm" /></Link>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-9 w-9"><Bell size={17} /></Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/settings/security")}><Shield size={17} /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/settings/profile")}><Settings size={17} /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={async () => { await signOut(); navigate("/"); }}><LogOut size={17} /></Button>
           </div>
