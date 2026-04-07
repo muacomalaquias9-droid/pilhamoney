@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { LogOut, Settings, Bell } from "lucide-react";
+import { LogOut, Settings, Bell, Shield } from "lucide-react";
 import WithdrawModal from "@/components/WithdrawModal";
 import TransferModal from "@/components/TransferModal";
 import { Button } from "@/components/ui/button";
