@@ -94,6 +94,89 @@ export type Database = {
         }
         Relationships: []
       }
+      transfers: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          note: string | null
+          receiver_id: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          receiver_id: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfers_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_security: {
+        Row: {
+          created_at: string
+          daily_transfer_limit: number
+          failed_attempts: number
+          locked_until: string | null
+          totp_enabled: boolean
+          totp_secret: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_transfer_limit?: number
+          failed_attempts?: number
+          locked_until?: string | null
+          totp_enabled?: boolean
+          totp_secret?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_transfer_limit?: number
+          failed_attempts?: number
+          locked_until?: string | null
+          totp_enabled?: boolean
+          totp_secret?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_security_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallets: {
         Row: {
           balance: number
