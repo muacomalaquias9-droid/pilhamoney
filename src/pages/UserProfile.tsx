@@ -395,7 +395,7 @@ const UserProfile = () => {
                     <Input
                       type="number"
                       step="1"
-                      min="100"
+                      min="1000"
                       placeholder="0"
                       className="h-14 rounded-xl pr-16 text-2xl font-bold"
                       value={amount}

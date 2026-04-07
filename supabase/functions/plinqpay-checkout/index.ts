@@ -43,9 +43,9 @@ serve(async (req) => {
 
     const { recipient_username, amount, message, donor_name, donor_phone, donor_email } = parsedBody.data;
 
-    if (!recipient_username || !amount || amount < 100) {
+    if (!recipient_username || !amount || amount < 1000) {
       return new Response(
-        JSON.stringify({ error: "Valor mínimo é 100 AOA" }),
+        JSON.stringify({ error: "Valor mínimo é 1.000 AOA" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
