@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { LogOut, Settings, Bell, Shield } from "lucide-react";
+import { LogOut, Settings, Shield } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 import WithdrawModal from "@/components/WithdrawModal";
 import TransferModal from "@/components/TransferModal";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,7 @@ const Dashboard = () => {
         <div className="container mx-auto flex items-center justify-between px-4 py-2.5">
           <Link to="/"><Logo size="sm" /></Link>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-9 w-9"><Bell size={17} /></Button>
+            <NotificationBell userId={user!.id} />
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/settings/security")}><Shield size={17} /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/settings/profile")}><Settings size={17} /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={async () => { await signOut(); navigate("/"); }}><LogOut size={17} /></Button>

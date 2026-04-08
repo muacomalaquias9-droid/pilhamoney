@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronRight, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
@@ -14,6 +14,8 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(searchParams.get("tab") !== "register");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [needs2FA, setNeeds2FA] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -28,11 +30,23 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
         if (error) throw error;
+
+        // Check if user has 2FA enabled
+        const { data: secData } = await supabase.functions.invoke("totp-setup", {
+          body: { action: "status" },
+        });
+
+        if (secData?.totp_enabled) {
+          setNeeds2FA(true);
+          setLoading(false);
+          return;
+        }
+
         toast.success("Login realizado com sucesso!");
         navigate("/dashboard");
       } else {
@@ -71,6 +85,31 @@ const Auth = () => {
       }
     } catch (err: any) {
       toast.error(err.message || "Ocorreu um erro. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handle2FAVerify = async () => {
+    if (totpCode.length !== 6) {
+      toast.error("Digite o código de 6 dígitos");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("totp-setup", {
+        body: { action: "verify_login", code: totpCode },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        setLoading(false);
+        return;
+      }
+      toast.success("Login realizado com sucesso!");
+      navigate("/dashboard");
+    } catch (err: any) {
+      toast.error("Código inválido. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -127,6 +166,49 @@ const Auth = () => {
             <Logo size="md" />
           </div>
 
+          {needs2FA ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-6"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                  <Smartphone size={32} className="text-primary" />
+                </div>
+                <h1 className="font-display text-2xl font-bold text-foreground">Verificação 2FA</h1>
+                <p className="text-center text-sm text-muted-foreground">
+                  Abra o Google Authenticator e digite o código de 6 dígitos
+                </p>
+              </div>
+
+              <Input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="000000"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                className="h-14 text-center text-3xl font-bold tracking-[0.5em] rounded-xl"
+              />
+
+              <Button
+                className="w-full h-12 rounded-xl gap-2"
+                onClick={handle2FAVerify}
+                disabled={loading || totpCode.length !== 6}
+              >
+                {loading ? "Verificando..." : "Confirmar"}
+                <ChevronRight size={16} />
+              </Button>
+
+              <button
+                onClick={() => { setNeeds2FA(false); setTotpCode(""); supabase.auth.signOut(); }}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                Voltar ao login
+              </button>
+            </motion.div>
+          ) : (
           <AnimatePresence mode="wait">
             <motion.div
               key={isLogin ? "login" : "register"}
@@ -277,6 +359,7 @@ const Auth = () => {
               </div>
             </motion.div>
           </AnimatePresence>
+          )}
         </div>
       </div>
     </div>

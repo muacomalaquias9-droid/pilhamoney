@@ -104,6 +104,62 @@ serve(async (req) => {
       });
     }
 
+    if (action === "verify_login") {
+      const code = body.code;
+      if (!code || code.length !== 6) {
+        return new Response(JSON.stringify({ error: "Código inválido" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: sec } = await supabase.from("user_security")
+        .select("totp_secret, totp_enabled, failed_attempts, locked_until")
+        .eq("user_id", user.id).maybeSingle();
+
+      if (!sec?.totp_enabled || !sec?.totp_secret) {
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Check if locked
+      if (sec.locked_until && new Date(sec.locked_until) > new Date()) {
+        return new Response(JSON.stringify({ error: "Conta bloqueada. Tente novamente mais tarde." }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Verify TOTP code
+      const expected = generateTOTP(sec.totp_secret);
+      const prevExpected = generateTOTP(sec.totp_secret, (Date.now() / 1000) - 30);
+
+      if (code === expected || code === prevExpected) {
+        // Reset failed attempts
+        await supabase.from("user_security").update({
+          failed_attempts: 0,
+          locked_until: null,
+        }).eq("user_id", user.id);
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } else {
+        const newAttempts = (sec.failed_attempts || 0) + 1;
+        const lockUntil = newAttempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000).toISOString() : null;
+
+        await supabase.from("user_security").update({
+          failed_attempts: newAttempts,
+          locked_until: lockUntil,
+        }).eq("user_id", user.id);
+
+        return new Response(JSON.stringify({
+          error: newAttempts >= 5 ? "Conta bloqueada por 30 minutos" : `Código inválido. ${5 - newAttempts} tentativas restantes.`,
+        }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     if (action === "status") {
       const { data } = await supabase.from("user_security").select("totp_enabled").eq("user_id", user.id).maybeSingle();
       return new Response(JSON.stringify({ totp_enabled: data?.totp_enabled || false }), {
