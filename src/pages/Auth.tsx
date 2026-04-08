@@ -166,6 +166,49 @@ const Auth = () => {
             <Logo size="md" />
           </div>
 
+          {needs2FA ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-6"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                  <Smartphone size={32} className="text-primary" />
+                </div>
+                <h1 className="font-display text-2xl font-bold text-foreground">Verificação 2FA</h1>
+                <p className="text-center text-sm text-muted-foreground">
+                  Abra o Google Authenticator e digite o código de 6 dígitos
+                </p>
+              </div>
+
+              <Input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="000000"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                className="h-14 text-center text-3xl font-bold tracking-[0.5em] rounded-xl"
+              />
+
+              <Button
+                className="w-full h-12 rounded-xl gap-2"
+                onClick={handle2FAVerify}
+                disabled={loading || totpCode.length !== 6}
+              >
+                {loading ? "Verificando..." : "Confirmar"}
+                <ChevronRight size={16} />
+              </Button>
+
+              <button
+                onClick={() => { setNeeds2FA(false); setTotpCode(""); supabase.auth.signOut(); }}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                Voltar ao login
+              </button>
+            </motion.div>
+          ) : (
           <AnimatePresence mode="wait">
             <motion.div
               key={isLogin ? "login" : "register"}
