@@ -106,7 +106,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Checkout error:", error);
     return new Response(
-      JSON.stringify({ error: (error as Error).message }),
+      JSON.stringify({ error: "Erro interno no servidor" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

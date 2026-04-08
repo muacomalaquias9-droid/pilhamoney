@@ -60,12 +60,15 @@ const UserProfile = () => {
       setProfile(data);
 
       if (data) {
-        const { count } = await supabase
-          .from("donations")
-          .select("*", { count: "exact", head: true })
-          .eq("recipient_id", data.id)
-          .eq("status", "completed");
-        setDonationCount(count || 0);
+        // Donation count is fetched via edge function to avoid PII exposure
+        try {
+          const res = await supabase.functions.invoke("plinqpay-checkout", {
+            body: { action: "count", recipient_id: data.id },
+          });
+          setDonationCount(res.data?.count || 0);
+        } catch {
+          setDonationCount(0);
+        }
       }
 
       setProfileLoading(false);
@@ -79,17 +82,16 @@ const UserProfile = () => {
     if (!paymentResult?.donation_id) return;
 
     const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from("donations")
-        .select("status")
-        .eq("id", paymentResult.donation_id)
-        .maybeSingle();
+      const { data: statusData } = await (supabase.rpc as any)("get_donation_status", {
+        p_donation_id: paymentResult.donation_id,
+      });
+      const status = statusData as string | null;
 
-      if (data?.status === "completed") {
+      if (status === "completed") {
         setDonationStatus("completed");
         clearInterval(interval);
         toast.success("Pagamento confirmado! 🎉");
-      } else if (data?.status === "failed") {
+      } else if (status === "failed") {
         setDonationStatus("failed");
         clearInterval(interval);
         toast.error("Pagamento falhou ou expirou.");
