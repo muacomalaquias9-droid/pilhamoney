@@ -82,16 +82,16 @@ const UserProfile = () => {
     if (!paymentResult?.donation_id) return;
 
     const interval = setInterval(async () => {
-      const { data: statusData } = await supabase.rpc("get_donation_status", {
+      const { data: statusData } = await (supabase.rpc as any)("get_donation_status", {
         p_donation_id: paymentResult.donation_id,
       });
-      const data = statusData ? { status: statusData } : null;
+      const status = statusData as string | null;
 
-      if (data?.status === "completed") {
+      if (status === "completed") {
         setDonationStatus("completed");
         clearInterval(interval);
         toast.success("Pagamento confirmado! 🎉");
-      } else if (data?.status === "failed") {
+      } else if (status === "failed") {
         setDonationStatus("failed");
         clearInterval(interval);
         toast.error("Pagamento falhou ou expirou.");
