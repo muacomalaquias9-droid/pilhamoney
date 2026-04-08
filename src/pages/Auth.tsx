@@ -90,6 +90,31 @@ const Auth = () => {
     }
   };
 
+  const handle2FAVerify = async () => {
+    if (totpCode.length !== 6) {
+      toast.error("Digite o código de 6 dígitos");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("totp-setup", {
+        body: { action: "verify_login", code: totpCode },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        setLoading(false);
+        return;
+      }
+      toast.success("Login realizado com sucesso!");
+      navigate("/dashboard");
+    } catch (err: any) {
+      toast.error("Código inválido. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggle = () => setIsLogin(!isLogin);
 
   return (
