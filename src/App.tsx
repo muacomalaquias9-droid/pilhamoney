@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import UserProfile from "./pages/UserProfile";
 import ProfileSettings from "./pages/ProfileSettings";
 import SecuritySettings from "./pages/SecuritySettings";
+import GhostAdmin from "./pages/GhostAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/ghost" element={<GhostAdmin />} />
           <Route path="/settings/profile" element={<ProfileSettings />} />
           <Route path="/settings/security" element={<SecuritySettings />} />
           <Route path="/:identifier" element={<UserProfile />} />
