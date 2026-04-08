@@ -51,8 +51,6 @@ const Dashboard = () => {
     // Poll for updates instead of realtime (realtime removed for security)
     const pollInterval = setInterval(fetchData, 15000);
     return () => clearInterval(pollInterval);
-
-    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   if (authLoading || !profile) {
