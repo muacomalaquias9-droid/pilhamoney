@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronRight, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
@@ -14,6 +14,8 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(searchParams.get("tab") !== "register");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [needs2FA, setNeeds2FA] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -28,11 +30,23 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
         if (error) throw error;
+
+        // Check if user has 2FA enabled
+        const { data: secData } = await supabase.functions.invoke("totp-setup", {
+          body: { action: "status" },
+        });
+
+        if (secData?.totp_enabled) {
+          setNeeds2FA(true);
+          setLoading(false);
+          return;
+        }
+
         toast.success("Login realizado com sucesso!");
         navigate("/dashboard");
       } else {
