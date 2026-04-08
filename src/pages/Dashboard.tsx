@@ -48,12 +48,9 @@ const Dashboard = () => {
 
     fetchData();
 
-    const channel = supabase
-      .channel("dashboard-updates")
-      .on("postgres_changes", { event: "*", schema: "public", table: "donations", filter: `recipient_id=eq.${user.id}` }, () => fetchData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "wallets", filter: `user_id=eq.${user.id}` }, () => fetchData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "transfers" }, () => fetchData())
-      .subscribe();
+    // Poll for updates instead of realtime (realtime removed for security)
+    const pollInterval = setInterval(fetchData, 15000);
+    return () => clearInterval(pollInterval);
 
     return () => { supabase.removeChannel(channel); };
   }, [user]);
