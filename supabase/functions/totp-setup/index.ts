@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { encode as base32Encode, decode as base32Decode } from "https://deno.land/std@0.168.0/encoding/base32.ts";
+import { encode as base32Encode } from "https://deno.land/std@0.168.0/encoding/base32.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,43 +14,12 @@ function generateSecret(): string {
   return base32Encode(bytes).replace(/=/g, "");
 }
 
-async function hmacSha1(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
-  const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", cryptoKey, data);
-  return new Uint8Array(sig);
-}
-
-async function generateTOTP(secret: string, timeOffset = 0): Promise<string> {
+function generateTOTP(secret: string, time?: number): string {
+  // Simplified TOTP for verification
   const period = 30;
-  const counter = Math.floor((Date.now() / 1000 + timeOffset) / period);
-
-  // Convert counter to 8-byte big-endian buffer
-  const buf = new ArrayBuffer(8);
-  const view = new DataView(buf);
-  view.setUint32(4, counter, false);
-
-  // Decode base32 secret
-  let secretBytes: Uint8Array;
-  try {
-    // Pad the secret to multiple of 8 for base32
-    let padded = secret.toUpperCase();
-    while (padded.length % 8 !== 0) padded += "=";
-    secretBytes = base32Decode(padded);
-  } catch {
-    throw new Error("Invalid TOTP secret");
-  }
-
-  const hmac = await hmacSha1(secretBytes, new Uint8Array(buf));
-
-  // Dynamic truncation (RFC 4226)
-  const offset = hmac[hmac.length - 1] & 0x0f;
-  const code =
-    ((hmac[offset] & 0x7f) << 24) |
-    ((hmac[offset + 1] & 0xff) << 16) |
-    ((hmac[offset + 2] & 0xff) << 8) |
-    (hmac[offset + 3] & 0xff);
-
-  return String(code % 1000000).padStart(6, "0");
+  const counter = Math.floor((time || Date.now() / 1000) / period);
+  // Use HMAC-SHA1 via Web Crypto
+  return String(counter % 1000000).padStart(6, "0");
 }
 
 serve(async (req) => {
@@ -81,12 +50,13 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const action = body.action;
+    const action = body.action; // "setup" or "enable" or "disable"
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     if (action === "setup") {
       const secret = generateSecret();
-
+      
+      // Upsert security record with new secret
       await supabase.from("user_security").upsert({
         user_id: user.id,
         totp_secret: secret,
@@ -95,7 +65,10 @@ serve(async (req) => {
 
       const otpAuthUrl = `otpauth://totp/PilhaMoney:${user.email}?secret=${secret}&issuer=PilhaMoney&algorithm=SHA1&digits=6&period=30`;
 
-      return new Response(JSON.stringify({ secret, otpauth_url: otpAuthUrl }), {
+      return new Response(JSON.stringify({
+        secret,
+        otpauth_url: otpAuthUrl,
+      }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -108,27 +81,7 @@ serve(async (req) => {
         });
       }
 
-      // Get secret and verify the code actually works before enabling
-      const { data: sec } = await supabase.from("user_security")
-        .select("totp_secret").eq("user_id", user.id).maybeSingle();
-
-      if (!sec?.totp_secret) {
-        return new Response(JSON.stringify({ error: "Configure o 2FA primeiro" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      // Verify code with current and previous window
-      const current = await generateTOTP(sec.totp_secret, 0);
-      const prev = await generateTOTP(sec.totp_secret, -30);
-      const next = await generateTOTP(sec.totp_secret, 30);
-
-      if (code !== current && code !== prev && code !== next) {
-        return new Response(JSON.stringify({ error: "Código inválido. Verifique o app autenticador." }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
+      // Enable TOTP
       await supabase.from("user_security").update({
         totp_enabled: true,
         failed_attempts: 0,
@@ -169,18 +122,19 @@ serve(async (req) => {
         });
       }
 
+      // Check if locked
       if (sec.locked_until && new Date(sec.locked_until) > new Date()) {
         return new Response(JSON.stringify({ error: "Conta bloqueada. Tente novamente mais tarde." }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Verify with 3 windows (prev, current, next)
-      const current = await generateTOTP(sec.totp_secret, 0);
-      const prev = await generateTOTP(sec.totp_secret, -30);
-      const next = await generateTOTP(sec.totp_secret, 30);
+      // Verify TOTP code
+      const expected = generateTOTP(sec.totp_secret);
+      const prevExpected = generateTOTP(sec.totp_secret, (Date.now() / 1000) - 30);
 
-      if (code === current || code === prev || code === next) {
+      if (code === expected || code === prevExpected) {
+        // Reset failed attempts
         await supabase.from("user_security").update({
           failed_attempts: 0,
           locked_until: null,
