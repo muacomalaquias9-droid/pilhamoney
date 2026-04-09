@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
 
 const SecuritySettings = () => {
