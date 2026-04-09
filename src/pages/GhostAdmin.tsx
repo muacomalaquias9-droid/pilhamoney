@@ -219,9 +219,15 @@ const GhostAdmin = () => {
                     <p className="text-xs text-muted-foreground">{w.method} • {w.method_detail}</p>
                     <p className="text-xs text-muted-foreground">{new Date(w.created_at).toLocaleString("pt-AO")}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right space-y-1">
                     <p className="font-display text-sm font-bold">{Number(w.amount).toLocaleString("pt-AO")} Kz</p>
                     {statusBadge(w.status)}
+                    {w.status === "pending" && (
+                      <div className="flex gap-1 mt-1">
+                        <Button size="sm" className="h-6 text-[10px] bg-green-600 hover:bg-green-700" onClick={() => processWithdrawal(w.id, "approve")}>Aprovar</Button>
+                        <Button size="sm" variant="destructive" className="h-6 text-[10px]" onClick={() => processWithdrawal(w.id, "reject")}>Rejeitar</Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
