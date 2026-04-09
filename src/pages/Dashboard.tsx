@@ -14,6 +14,7 @@ import VirtualCard from "@/components/dashboard/VirtualCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import StatsCards from "@/components/dashboard/StatsCards";
 import TransactionHistory from "@/components/dashboard/TransactionHistory";
+import SavingsVault from "@/components/dashboard/SavingsVault";
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -48,8 +49,6 @@ const Dashboard = () => {
     };
 
     fetchData();
-
-    // Poll for updates instead of realtime (realtime removed for security)
     const pollInterval = setInterval(fetchData, 15000);
     return () => clearInterval(pollInterval);
   }, [user]);
@@ -75,7 +74,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md">
         <div className="container mx-auto flex items-center justify-between px-4 py-2.5">
           <Link to="/"><Logo size="sm" /></Link>
@@ -89,7 +87,6 @@ const Dashboard = () => {
       </header>
 
       <div className="container mx-auto max-w-lg px-4 py-5 space-y-5">
-        {/* Greeting */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-display text-xl font-bold text-foreground">
             Olá, {(profile.full_name || profile.username).split(" ")[0]} 👋
@@ -97,52 +94,30 @@ const Dashboard = () => {
           <p className="text-xs text-muted-foreground">Bem-vindo à sua carteira Pilha-Money</p>
         </motion.div>
 
-        {/* Balance Card */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <VirtualCard
-            balance={balance}
-            username={profile.username}
-            cardNumber={cardNum}
-            showBalance={showBalance}
-            onToggleBalance={() => setShowBalance(!showBalance)}
-          />
+          <VirtualCard balance={balance} username={profile.username} cardNumber={cardNum} showBalance={showBalance} onToggleBalance={() => setShowBalance(!showBalance)} />
         </motion.div>
 
-        {/* Quick Actions */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <QuickActions
-            username={profile.username}
-            onWithdraw={() => setShowWithdrawModal(true)}
-            onTransfer={() => setShowTransferModal(true)}
-          />
+          <QuickActions username={profile.username} fullName={profile.full_name || profile.username} userId={user!.id} onWithdraw={() => setShowWithdrawModal(true)} onTransfer={() => setShowTransferModal(true)} />
         </motion.div>
 
-        {/* Stats */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <StatsCards totalReceived={totalReceived} donationsCount={donations.length} balance={balance} />
         </motion.div>
 
-        {/* Transaction History */}
+        {/* Savings Vaults */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+          <SavingsVault userId={user!.id} walletBalance={balance} onWalletUpdate={refreshWallet} />
+        </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <TransactionHistory userId={user!.id} />
         </motion.div>
       </div>
 
-      <WithdrawModal
-        open={showWithdrawModal}
-        onClose={() => setShowWithdrawModal(false)}
-        balance={balance}
-        userId={user!.id}
-        onSuccess={refreshWallet}
-      />
-
-      <TransferModal
-        open={showTransferModal}
-        onClose={() => setShowTransferModal(false)}
-        balance={balance}
-        userId={user!.id}
-        onSuccess={refreshWallet}
-      />
+      <WithdrawModal open={showWithdrawModal} onClose={() => setShowWithdrawModal(false)} balance={balance} userId={user!.id} onSuccess={refreshWallet} />
+      <TransferModal open={showTransferModal} onClose={() => setShowTransferModal(false)} balance={balance} userId={user!.id} onSuccess={refreshWallet} />
     </div>
   );
 };
