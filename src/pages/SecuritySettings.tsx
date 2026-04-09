@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Smartphone, Lock, CheckCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Shield, Smartphone, Lock, CheckCircle, AlertTriangle, Copy } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
 
