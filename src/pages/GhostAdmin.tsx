@@ -146,8 +146,16 @@ const GhostAdmin = () => {
                         <p className="text-xs text-muted-foreground">{w.method} • {w.method_detail}</p>
                         <p className="font-display text-sm font-bold text-primary">{Number(w.amount).toLocaleString("pt-AO")} Kz</p>
                       </div>
-                      <div className="flex gap-2">
+                     <div className="flex flex-col items-end gap-2">
                         {statusBadge(w.status)}
+                        <div className="flex gap-1">
+                          <Button size="sm" className="h-7 text-xs bg-green-600 hover:bg-green-700" onClick={() => processWithdrawal(w.id, "approve")}>
+                            <CheckCircle size={12} className="mr-1" /> Aprovar
+                          </Button>
+                          <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => processWithdrawal(w.id, "reject")}>
+                            <Ban size={12} className="mr-1" /> Rejeitar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
