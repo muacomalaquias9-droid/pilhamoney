@@ -49,6 +49,23 @@ const GhostAdmin = () => {
     setLoading(false);
   };
 
+  const processWithdrawal = async (withdrawalId: string, action: "approve" | "reject") => {
+    if (!user) return;
+    const { data, error } = await supabase.rpc("process_withdrawal", {
+      p_withdrawal_id: withdrawalId,
+      p_action: action,
+      p_admin_email: user.email!,
+    });
+    if (error) { toast.error(error.message); return; }
+    const result = data as any;
+    if (result?.success) {
+      toast.success(`Saque ${action === "approve" ? "aprovado" : "rejeitado"} com sucesso!`);
+      fetchAll();
+    } else {
+      toast.error(result?.error || "Erro ao processar saque");
+    }
+  };
+
   const getWallet = (userId: string) => wallets.find((w) => w.user_id === userId);
 
   const statusBadge = (status: string) => {
