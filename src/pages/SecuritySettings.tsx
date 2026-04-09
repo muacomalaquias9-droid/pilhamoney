@@ -148,15 +148,34 @@ const SecuritySettings = () => {
               <div className="space-y-4">
                 <div className="rounded-xl bg-muted/50 p-4 text-center">
                   <Smartphone size={32} className="mx-auto mb-3 text-primary" />
-                  <p className="text-sm font-medium text-card-foreground mb-2">
-                    Escaneie com Google Authenticator
+                  <p className="text-sm font-medium text-card-foreground mb-3">
+                    Escaneie o QR Code com Google Authenticator
                   </p>
-                  <div className="rounded-lg bg-card border border-border p-4 mb-3">
-                    <p className="font-mono text-xs break-all text-muted-foreground">{setupData.secret}</p>
+
+                  {/* QR Code visual */}
+                  <div className="mx-auto w-fit rounded-2xl bg-white p-4 shadow-sm border border-border mb-3">
+                    <QRCodeSVG
+                      value={setupData.otpauth_url}
+                      size={180}
+                      level="H"
+                      includeMargin={false}
+                      fgColor="#000000"
+                      bgColor="#ffffff"
+                    />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Ou copie o código acima e adicione manualmente no app autenticador
+
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Ou copie o código abaixo e adicione manualmente:
                   </p>
+                  <div className="flex items-center gap-2 rounded-lg bg-card border border-border p-3">
+                    <p className="font-mono text-xs break-all text-foreground flex-1 select-all">{setupData.secret}</p>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(setupData.secret); toast.success("Código copiado!"); }}
+                      className="text-muted-foreground hover:text-foreground flex-shrink-0"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 <div>
