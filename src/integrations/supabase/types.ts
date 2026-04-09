@@ -94,6 +94,50 @@ export type Database = {
         }
         Relationships: []
       }
+      savings_vaults: {
+        Row: {
+          created_at: string
+          current_amount: number
+          deadline: string | null
+          goal_amount: number
+          id: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_amount?: number
+          deadline?: string | null
+          goal_amount?: number
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_amount?: number
+          deadline?: string | null
+          goal_amount?: number
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_vaults_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transfers: {
         Row: {
           amount: number
@@ -256,6 +300,14 @@ export type Database = {
     }
     Functions: {
       get_user_count: { Args: never; Returns: number }
+      process_withdrawal: {
+        Args: {
+          p_action: string
+          p_admin_email: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
