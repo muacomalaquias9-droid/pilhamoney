@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronRight, Smartphone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, ChevronRight, Smartphone, Calendar, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/Logo";
@@ -16,13 +16,39 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [needs2FA, setNeeds2FA] = useState(false);
   const [totpCode, setTotpCode] = useState("");
+  const [biFile, setBiFile] = useState<File | null>(null);
+  const [biPreview, setBiPreview] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: "",
     username: "",
     email: "",
     password: "",
+    birthDate: "",
+    biNumber: "",
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("A imagem do BI deve ter no máximo 5MB");
+        return;
+      }
+      setBiFile(file);
+      setBiPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const validateAge = (dateStr: string): boolean => {
+    const birth = new Date(dateStr);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 16;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,13 +56,12 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { data: signInData, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
         if (error) throw error;
 
-        // Check if user has 2FA enabled
         const { data: secData } = await supabase.functions.invoke("totp-setup", {
           body: { action: "status" },
         });
@@ -56,6 +81,30 @@ const Auth = () => {
           return;
         }
 
+        if (!form.birthDate) {
+          toast.error("Data de nascimento é obrigatória.");
+          setLoading(false);
+          return;
+        }
+
+        if (!validateAge(form.birthDate)) {
+          toast.error("Você deve ter pelo menos 16 anos para criar uma conta.");
+          setLoading(false);
+          return;
+        }
+
+        if (!form.biNumber || form.biNumber.length < 8) {
+          toast.error("Número do BI é obrigatório (mínimo 8 caracteres).");
+          setLoading(false);
+          return;
+        }
+
+        if (!biFile) {
+          toast.error("Foto do BI é obrigatória para verificação.");
+          setLoading(false);
+          return;
+        }
+
         // Check if username is taken
         const { data: existing } = await supabase
           .from("profiles")
@@ -69,7 +118,7 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
           options: {
@@ -81,7 +130,34 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast.success("Conta criada! Verifique seu e-mail para confirmar.");
+
+        // Upload BI image
+        if (signUpData.user) {
+          const filePath = `${signUpData.user.id}/bi.jpg`;
+          const { error: uploadError } = await supabase.storage
+            .from("identity-docs")
+            .upload(filePath, biFile, { upsert: true });
+
+          if (uploadError) {
+            console.error("BI upload error:", uploadError);
+          } else {
+            // Trigger AI verification
+            try {
+              await supabase.functions.invoke("verify-bi", {
+                body: {
+                  bi_image_url: filePath,
+                  full_name: form.name,
+                  birth_date: form.birthDate,
+                  bi_number: form.biNumber,
+                },
+              });
+            } catch (verifyErr) {
+              console.error("BI verification error:", verifyErr);
+            }
+          }
+        }
+
+        toast.success("Conta criada! Verifique seu e-mail para confirmar. Seu BI está sendo verificado.");
       }
     } catch (err: any) {
       toast.error(err.message || "Ocorreu um erro. Tente novamente.");
@@ -226,7 +302,7 @@ const Auth = () => {
                   : "Preencha os dados abaixo para começar a receber doações."}
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <>
                     <div className="space-y-1.5">
@@ -272,6 +348,80 @@ const Auth = () => {
                           Seu link: pilhamoney.lovable.app/@{form.username}
                         </p>
                       )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="birthDate" className="text-sm font-medium text-foreground">
+                        Data de nascimento
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground/60" />
+                        <Input
+                          id="birthDate"
+                          type="date"
+                          className="h-11 pl-10 bg-secondary/40 border-border/60 focus:bg-background transition-colors"
+                          value={form.birthDate}
+                          onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+                          required
+                          max={new Date().toISOString().split("T")[0]}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Mínimo 16 anos de idade</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="biNumber" className="text-sm font-medium text-foreground">
+                        Número do BI
+                      </label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground/60" />
+                        <Input
+                          id="biNumber"
+                          placeholder="00XXXXXXXXLA0XX"
+                          className="h-11 pl-10 bg-secondary/40 border-border/60 focus:bg-background transition-colors"
+                          value={form.biNumber}
+                          onChange={(e) => setForm({ ...form, biNumber: e.target.value })}
+                          required
+                          minLength={8}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">
+                        Foto do BI (frente)
+                      </label>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className="flex w-full items-center gap-3 rounded-xl border-2 border-dashed border-border/60 bg-secondary/40 p-4 text-left hover:bg-secondary/60 transition-colors"
+                      >
+                        {biPreview ? (
+                          <img src={biPreview} alt="BI Preview" className="h-16 w-24 object-cover rounded-lg" />
+                        ) : (
+                          <div className="flex h-16 w-24 items-center justify-center rounded-lg bg-muted">
+                            <Upload size={24} className="text-muted-foreground" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {biFile ? biFile.name : "Carregar foto do BI"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {biFile ? "Clique para trocar" : "JPG, PNG até 5MB"}
+                          </p>
+                        </div>
+                      </button>
+                      <p className="text-xs text-muted-foreground">
+                        🔒 A IA verificará se o nome e BI correspondem ao cadastro
+                      </p>
                     </div>
                   </>
                 )}
