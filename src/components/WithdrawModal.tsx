@@ -121,8 +121,15 @@ const WithdrawModal = ({ open, onClose, balance, userId, onSuccess }: WithdrawMo
 
           <div className="mb-4 rounded-lg border border-warning/30 bg-warning/5 p-3">
             <p className="text-xs text-muted-foreground">
-              <strong className="text-foreground">⚠️ Saque manual:</strong> Os saques são processados manualmente e transferidos directamente para o seu IBAN. Prazo: até 24 horas úteis.
+              <strong className="text-foreground">⚠️ Saque manual:</strong> Taxa de 3% aplicada. Os saques são processados e transferidos para o seu IBAN via PlinqPay. Prazo: até 24h úteis.
             </p>
+            {withdrawAmount && Number(withdrawAmount) >= 10000 && (
+              <div className="mt-2 text-xs space-y-0.5">
+                <p className="text-muted-foreground">Valor: <strong className="text-foreground">{Number(withdrawAmount).toLocaleString("pt-AO")} AOA</strong></p>
+                <p className="text-muted-foreground">Taxa (3%): <strong className="text-foreground">{Math.round(Number(withdrawAmount) * 0.03).toLocaleString("pt-AO")} AOA</strong></p>
+                <p className="text-muted-foreground">Você recebe: <strong className="text-primary">{Math.round(Number(withdrawAmount) * 0.97).toLocaleString("pt-AO")} AOA</strong></p>
+              </div>
+            )}
           </div>
 
           {step === "bank" ? (
