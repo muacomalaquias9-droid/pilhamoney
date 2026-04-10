@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Smartphone, Lock, CheckCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Shield, Smartphone, Lock, CheckCircle, AlertTriangle, Copy, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Logo from "@/components/Logo";
+import { QRCodeSVG } from "qrcode.react";
 
 const SecuritySettings = () => {
   const { user, loading: authLoading } = useAuth();
@@ -88,6 +89,13 @@ const SecuritySettings = () => {
     }
   };
 
+  const copySecret = () => {
+    if (setupData?.secret) {
+      navigator.clipboard.writeText(setupData.secret);
+      toast.success("Código copiado!");
+    }
+  };
+
   if (authLoading || checking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -145,17 +153,49 @@ const SecuritySettings = () => {
               </div>
             ) : setupData ? (
               <div className="space-y-4">
+                {/* QR Code */}
                 <div className="rounded-xl bg-muted/50 p-4 text-center">
-                  <Smartphone size={32} className="mx-auto mb-3 text-primary" />
-                  <p className="text-sm font-medium text-card-foreground mb-2">
-                    Escaneie com Google Authenticator
-                  </p>
-                  <div className="rounded-lg bg-card border border-border p-4 mb-3">
-                    <p className="font-mono text-xs break-all text-muted-foreground">{setupData.secret}</p>
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <QrCode size={20} className="text-primary" />
+                    <p className="text-sm font-medium text-card-foreground">
+                      Escaneie o QR Code
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Ou copie o código acima e adicione manualmente no app autenticador
+                  
+                  <div className="flex justify-center mb-4">
+                    <div className="rounded-2xl bg-white p-4 shadow-lg">
+                      <QRCodeSVG
+                        value={setupData.otpauth_url}
+                        size={200}
+                        level="H"
+                        includeMargin={false}
+                      />
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Abra o <strong>Google Authenticator</strong>, Microsoft Authenticator ou qualquer app TOTP e escaneie o QR Code acima
                   </p>
+
+                  {/* Manual code */}
+                  <div className="rounded-lg bg-card border border-border p-3">
+                    <p className="text-xs text-muted-foreground mb-1.5">
+                      Ou copie o código manual:
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 font-mono text-xs break-all text-foreground bg-muted rounded px-2 py-1.5 select-all">
+                        {setupData.secret}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1 flex-shrink-0"
+                        onClick={copySecret}
+                      >
+                        <Copy size={12} /> Copiar
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -169,6 +209,9 @@ const SecuritySettings = () => {
                     onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
                     className="h-12 text-center text-2xl font-bold tracking-[0.5em] rounded-xl"
                   />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Digite o código de 6 dígitos do app autenticador
+                  </p>
                 </div>
 
                 <Button className="w-full h-12 rounded-xl" onClick={handleEnable} disabled={loading || verifyCode.length !== 6}>

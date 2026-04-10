@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.totp-setup]
 verify_jwt = false
+
+[functions.verify-bi]
+verify_jwt = false
+
+[functions.process-payout]
+verify_jwt = false
