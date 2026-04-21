@@ -120,6 +120,17 @@ serve(async (req) => {
       }
 
       console.log(`✅ PlinqPay payment completed for donation: ${donation.id}, amount: ${donation.amount} AOA`);
+
+      fetch(`${supabaseUrl}/functions/v1/send-push`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` },
+        body: JSON.stringify({
+          user_id: donation.recipient_id,
+          title: "💰 Pagamento recebido",
+          body: `${donation.donor_name || "Anônimo"} enviou ${Number(donation.amount).toLocaleString("pt-AO")} AOA`,
+          url: "/dashboard",
+        }),
+      }).catch(() => {});
     } else if (status === "FAILED" || status === "CANCELLED" || status === "EXPIRED" || status === "REJECTED") {
       await supabase
         .from("donations")
