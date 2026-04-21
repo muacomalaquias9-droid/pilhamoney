@@ -159,6 +159,20 @@ serve(async (req) => {
 
     console.log(`✅ Transfer ${transfer.id}: ${amount} AOA from ${user.id} to ${receiver.id}`);
 
+    // Fire push notifications (non-blocking)
+    const fmt = (n: number) => n.toLocaleString("pt-AO") + " AOA";
+    const senderName = (user.user_metadata as any)?.username || user.email?.split("@")[0] || "alguém";
+    fetch(`${supabaseUrl}/functions/v1/send-push`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` },
+      body: JSON.stringify({ user_id: receiver.id, title: "💰 Dinheiro recebido", body: `@${senderName} enviou ${fmt(amount)}`, url: "/dashboard" }),
+    }).catch(() => {});
+    fetch(`${supabaseUrl}/functions/v1/send-push`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` },
+      body: JSON.stringify({ user_id: user.id, title: "📤 Transferência enviada", body: `${fmt(amount)} para @${receiver.username}`, url: "/dashboard" }),
+    }).catch(() => {});
+
     return new Response(JSON.stringify({
       success: true,
       transfer_id: transfer.id,

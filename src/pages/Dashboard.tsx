@@ -15,6 +15,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import StatsCards from "@/components/dashboard/StatsCards";
 import TransactionHistory from "@/components/dashboard/TransactionHistory";
 import SavingsVault from "@/components/dashboard/SavingsVault";
+import { subscribePush } from "@/lib/push";
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -29,6 +30,21 @@ const Dashboard = () => {
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
+
+  // Auto-prompt for push notifications once authenticated
+  useEffect(() => {
+    if (!user) return;
+    const inIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
+    if (inIframe) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      const t = setTimeout(() => { subscribePush(user.id).catch(() => {}); }, 2000);
+      return () => clearTimeout(t);
+    }
+    if (Notification.permission === "granted") {
+      subscribePush(user.id).catch(() => {});
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
