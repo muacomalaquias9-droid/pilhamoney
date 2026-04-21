@@ -10,35 +10,24 @@ interface VirtualCardProps {
 
 const VirtualCard = ({ balance, username, showBalance, onToggleBalance }: VirtualCardProps) => {
   return (
-    <div className="balance-card-bg rounded-3xl p-6 text-white relative z-10">
-      <div className="relative z-10 flex flex-col h-full min-h-[160px]">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-white/60 tracking-wide uppercase">Saldo disponível</span>
-          <button
-            onClick={onToggleBalance}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-          >
-            {showBalance ? <Eye size={14} /> : <EyeOff size={14} />}
-          </button>
-        </div>
-
-        <div className="mt-1 mb-auto">
-          <div className="font-display text-4xl font-bold tracking-tight">
-            {showBalance ? `${balance.toLocaleString("pt-AO")}` : "••••••"}
-            <span className="text-lg ml-1 font-semibold text-white/70">AOA</span>
-          </div>
-        </div>
-
-        <div className="flex items-end justify-between mt-4">
-          <div>
-            <div className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Titular</div>
-            <div className="text-sm font-semibold text-white/90">@{username}</div>
-          </div>
-          <div className="text-right">
-            <div className="font-display text-base font-bold text-white/90 tracking-wide">PILHA</div>
-            <div className="text-[10px] text-white/50 -mt-0.5">MONEY</div>
-          </div>
-        </div>
+    <div
+      className="rounded-md border-2 border-foreground/40 bg-primary p-4 text-primary-foreground"
+      style={{ fontFamily: "Arial, sans-serif" }}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm">O meu saldo:</span>
+        <button
+          onClick={onToggleBalance}
+          className="rounded border border-primary-foreground/40 px-2 py-0.5 text-xs"
+        >
+          {showBalance ? <Eye size={12} className="inline" /> : <EyeOff size={12} className="inline" />}
+        </button>
+      </div>
+      <div className="mb-3 text-3xl font-bold">
+        {showBalance ? balance.toLocaleString("pt-AO") : "------"} <span className="text-base">AOA</span>
+      </div>
+      <div className="border-t border-primary-foreground/30 pt-2 text-xs">
+        Conta de: @{username}
       </div>
     </div>
   );

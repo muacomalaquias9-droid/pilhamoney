@@ -345,7 +345,7 @@ const Auth = () => {
                       </div>
                       {form.username && (
                         <p className="text-xs text-muted-foreground">
-                          Seu link: pilhamoney.lovable.app/@{form.username}
+                          Seu link: pilha-money.com/@{form.username}
                         </p>
                       )}
                     </div>
