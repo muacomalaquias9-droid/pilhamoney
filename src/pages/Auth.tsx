@@ -194,53 +194,11 @@ const Auth = () => {
   const toggle = () => setIsLogin(!isLogin);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Left side — branding */}
-      <div className="hidden lg:flex lg:w-[45%] flex-col justify-between bg-primary p-10 text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.07]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-        <div className="relative z-10">
-          <Logo size="lg" />
-          <p className="mt-3 text-sm opacity-80 max-w-xs">
-            A plataforma de doações mais simples e segura de Angola.
-          </p>
-        </div>
-        <div className="relative z-10 space-y-6">
-          <div className="rounded-2xl bg-primary-foreground/10 backdrop-blur-sm p-6 border border-primary-foreground/10">
-            <p className="text-lg font-medium leading-relaxed">
-              "Recebi minha primeira doação em menos de 5 minutos. Incrível!"
-            </p>
-            <div className="mt-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary-foreground/20 flex items-center justify-center font-bold text-sm">
-                AM
-              </div>
-              <div>
-                <div className="text-sm font-semibold">Ana Maria</div>
-                <div className="text-xs opacity-70">Criadora de conteúdo</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="relative z-10 text-xs opacity-60">
-          © {new Date().getFullYear()} Pilha-Money
-        </div>
-      </div>
-
-      {/* Right side — form */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-10">
-        <div className="w-full max-w-[400px]">
-          <Link
-            to="/"
-            className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
-          >
-            <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-            Voltar
-          </Link>
-
-          <div className="lg:hidden mb-8">
-            <Logo size="md" />
-          </div>
+    <div style={{ fontFamily: "Arial, sans-serif", background: "#f5f5f5", minHeight: "100vh", padding: "20px" }}>
+      <div style={{ maxWidth: "380px", margin: "30px auto", background: "white", padding: "20px", border: "1px solid #ccc", borderRadius: "4px" }}>
+        <Link to="/" style={{ color: "#0066cc", fontSize: "13px", textDecoration: "underline" }}>Voltar</Link>
+        <h2 style={{ marginTop: "15px", marginBottom: "5px", color: "#222" }}>Pilha Money</h2>
+        <p style={{ fontSize: "13px", color: "#666", marginBottom: "20px" }}>Carteira digital</p>
 
           {needs2FA ? (
             <motion.div
