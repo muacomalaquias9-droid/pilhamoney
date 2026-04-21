@@ -314,6 +314,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_donation_count: { Args: { p_recipient_id: string }; Returns: number }
       get_user_count: { Args: never; Returns: number }
       process_withdrawal: {
         Args: {
