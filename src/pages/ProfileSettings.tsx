@@ -245,7 +245,7 @@ const ProfileSettings = () => {
                 required
               />
               <p className="text-xs text-muted-foreground">
-                Seu link: pilhamoney.lovable.app/@{profile.username}
+                Seu link: pilha-money.com/@{profile.username}
               </p>
             </div>
 
