@@ -60,15 +60,10 @@ const UserProfile = () => {
       setProfile(data);
 
       if (data) {
-        // Donation count is fetched via edge function to avoid PII exposure
-        try {
-          const res = await supabase.functions.invoke("plinqpay-checkout", {
-            body: { action: "count", recipient_id: data.id },
-          });
-          setDonationCount(res.data?.count || 0);
-        } catch {
-          setDonationCount(0);
-        }
+        const { data: countData } = await (supabase.rpc as any)("get_donation_count", {
+          p_recipient_id: data.id,
+        });
+        setDonationCount((countData as number) || 0);
       }
 
       setProfileLoading(false);
