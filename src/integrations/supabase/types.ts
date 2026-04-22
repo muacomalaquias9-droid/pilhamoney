@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      abuse_incidents: {
+        Row: {
+          action_taken: string | null
+          ai_analysis: string | null
+          ai_score: number | null
+          created_at: string
+          details: Json | null
+          id: string
+          incident_type: string
+          ip_address: string | null
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          ai_analysis?: string | null
+          ai_score?: number | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          incident_type: string
+          ip_address?: string | null
+          severity?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          ai_analysis?: string | null
+          ai_score?: number | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          incident_type?: string
+          ip_address?: string | null
+          severity?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      blocked_ips: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          id: string
+          ip_address: string
+          permanent: boolean
+          reason: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          ip_address: string
+          permanent?: boolean
+          reason: string
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string
+          permanent?: boolean
+          reason?: string
+        }
+        Relationships: []
+      }
       donations: {
         Row: {
           amount: number
@@ -63,6 +129,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_attempts: {
+        Row: {
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          ip_address: string | null
+          reason: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          reason?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          reason?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -136,6 +235,30 @@ export type Database = {
           p256dh?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          action: string
+          count: number
+          id: string
+          key: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          count?: number
+          id?: string
+          key: string
+          window_start?: string
+        }
+        Update: {
+          action?: string
+          count?: number
+          id?: string
+          key?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -228,29 +351,56 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_security: {
         Row: {
+          ban_reason: string | null
           created_at: string
           daily_transfer_limit: number
           failed_attempts: number
+          is_banned: boolean
           locked_until: string | null
           totp_enabled: boolean
           totp_secret: string | null
           user_id: string
         }
         Insert: {
+          ban_reason?: string | null
           created_at?: string
           daily_transfer_limit?: number
           failed_attempts?: number
+          is_banned?: boolean
           locked_until?: string | null
           totp_enabled?: boolean
           totp_secret?: string | null
           user_id: string
         }
         Update: {
+          ban_reason?: string | null
           created_at?: string
           daily_transfer_limit?: number
           failed_attempts?: number
+          is_banned?: boolean
           locked_until?: string | null
           totp_enabled?: boolean
           totp_secret?: string | null
@@ -344,8 +494,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          _action: string
+          _key: string
+          _max: number
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       get_donation_count: { Args: { p_recipient_id: string }; Returns: number }
       get_user_count: { Args: never; Returns: number }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       process_withdrawal: {
         Args: {
           p_action: string
@@ -356,7 +522,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -483,6 +649,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
