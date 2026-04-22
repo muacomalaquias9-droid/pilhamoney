@@ -53,6 +53,56 @@ export type Database = {
         }
         Relationships: []
       }
+      bi_reverification_requests: {
+        Row: {
+          ai_verdict: string | null
+          bi_image_url: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          reviewed_at: string | null
+          selfie_url: string | null
+          status: string
+          submitted_at: string | null
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          ai_verdict?: string | null
+          bi_image_url?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          reviewed_at?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          ai_verdict?: string | null
+          bi_image_url?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          reviewed_at?: string | null
+          selfie_url?: string | null
+          status?: string
+          submitted_at?: string | null
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bi_reverification_requests_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocked_ips: {
         Row: {
           blocked_until: string | null
@@ -305,6 +355,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          sender: string
+          ticket_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sender: string
+          ticket_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sender?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          ban_reason_snapshot: string | null
+          bi_deadline: string | null
+          bi_submitted_at: string | null
+          category: string
+          created_at: string
+          id: string
+          requires_bi_verification: boolean
+          resolution: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ban_reason_snapshot?: string | null
+          bi_deadline?: string | null
+          bi_submitted_at?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          requires_bi_verification?: boolean
+          resolution?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ban_reason_snapshot?: string | null
+          bi_deadline?: string | null
+          bi_submitted_at?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          requires_bi_verification?: boolean
+          resolution?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       transfers: {
         Row: {
