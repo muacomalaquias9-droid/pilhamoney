@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.abuse-ai]
 verify_jwt = false
+
+[functions.support-ai]
+verify_jwt = false
