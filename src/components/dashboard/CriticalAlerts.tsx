@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, ShieldAlert, Ban, Lock, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle, ShieldAlert, Ban, Lock, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Link } from "react-router-dom";
 
 const PAGE_SIZE = 5;
 
@@ -111,8 +112,14 @@ export default function CriticalAlerts({ userId, isAdmin }: Props) {
         <Alert variant="destructive" className="border-red-500/40">
           <Ban className="h-4 w-4" />
           <AlertTitle>Conta suspensa</AlertTitle>
-          <AlertDescription className="text-xs">
-            {ban.ban_reason || "A sua conta foi suspensa pelo sistema de segurança. Contacte o suporte."}
+          <AlertDescription className="text-xs space-y-2">
+            <p>{ban.ban_reason || "A sua conta foi suspensa pelo sistema de segurança. Contacte o suporte."}</p>
+            <Link
+              to={`/support?category=ban_appeal&reason=${encodeURIComponent(ban.ban_reason || "Conta suspensa pelo sistema")}`}
+              className="inline-flex items-center gap-1.5 rounded-md bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground hover:opacity-90"
+            >
+              <MessageCircle size={12} /> Fale com o Suporte IA
+            </Link>
           </AlertDescription>
         </Alert>
       )}
