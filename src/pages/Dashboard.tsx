@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { LogOut, Settings, Shield } from "lucide-react";
+import { LogOut, Settings, Shield, ShieldCheck } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import WithdrawModal from "@/components/WithdrawModal";
 import TransferModal from "@/components/TransferModal";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import VirtualCard from "@/components/dashboard/VirtualCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import StatsCards from "@/components/dashboard/StatsCards";
@@ -19,6 +20,7 @@ import { subscribePush } from "@/lib/push";
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin(user?.id);
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -95,6 +97,17 @@ const Dashboard = () => {
           <Link to="/"><Logo size="sm" /></Link>
           <div className="flex items-center gap-1">
             <NotificationBell userId={user!.id} />
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-amber-500"
+                title="Painel Admin"
+                onClick={() => navigate("/ghost-admin")}
+              >
+                <ShieldCheck size={17} />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/settings/security")}><Shield size={17} /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate("/settings/profile")}><Settings size={17} /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={async () => { await signOut(); navigate("/"); }}><LogOut size={17} /></Button>
@@ -105,7 +118,7 @@ const Dashboard = () => {
       <div className="container mx-auto max-w-lg px-4 py-5 space-y-5">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-display text-xl font-bold text-foreground">
-            Olá, {(profile.full_name || profile.username).split(" ")[0]} 👋
+            Olá, {(profile.full_name || profile.username).split(" ")[0]} {isAdmin && <span title="Admin verificado" className="ml-1 inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600">👑 ADMIN</span>}
           </h1>
           <p className="text-xs text-muted-foreground">Bem-vindo à sua carteira Pilha-Money</p>
         </motion.div>

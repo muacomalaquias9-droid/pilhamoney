@@ -55,6 +55,16 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // 🛡️ Security guard: geo-block (apenas Angola), VPN, brute-force, IP banido, rate-limit
+      const { data: guard } = await supabase.functions.invoke("security-guard", {
+        body: { email: form.email, action: isLogin ? "login" : "signup" },
+      });
+      if (guard && guard.allowed === false) {
+        toast.error(guard.message || "Acesso bloqueado por segurança.");
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email: form.email,
