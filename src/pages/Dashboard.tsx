@@ -16,6 +16,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import StatsCards from "@/components/dashboard/StatsCards";
 import TransactionHistory from "@/components/dashboard/TransactionHistory";
 import SavingsVault from "@/components/dashboard/SavingsVault";
+import CriticalAlerts from "@/components/dashboard/CriticalAlerts";
 import { subscribePush } from "@/lib/push";
 
 const Dashboard = () => {
@@ -121,6 +122,10 @@ const Dashboard = () => {
             Olá, {(profile.full_name || profile.username).split(" ")[0]} {isAdmin && <span title="Admin verificado" className="ml-1 inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600">👑 ADMIN</span>}
           </h1>
           <p className="text-xs text-muted-foreground">Bem-vindo à sua carteira Pilha-Money</p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}>
+          <CriticalAlerts userId={user!.id} isAdmin={isAdmin} />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
