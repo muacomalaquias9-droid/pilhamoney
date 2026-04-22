@@ -65,6 +65,12 @@ serve(async (req) => {
       });
     }
 
+    if ((security as any)?.is_banned) {
+      return new Response(JSON.stringify({ error: "Conta suspensa pelo sistema de segurança." }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Find receiver by username or UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const identifier = receiver_identifier.replace(/^@/, "");
