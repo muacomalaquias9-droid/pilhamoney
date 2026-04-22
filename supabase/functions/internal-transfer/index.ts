@@ -159,6 +159,19 @@ serve(async (req) => {
 
     console.log(`✅ Transfer ${transfer.id}: ${amount} AOA from ${user.id} to ${receiver.id}`);
 
+    // 🤖 Admin IA: análise de risco em segundo plano
+    const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "";
+    fetch(`${supabaseUrl}/functions/v1/abuse-ai`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` },
+      body: JSON.stringify({
+        user_id: user.id,
+        ip_address: ip,
+        incident_type: "internal_transfer",
+        details: { amount, receiver_id: receiver.id, today_total: todayTotal + amount, daily_limit: dailyLimit },
+      }),
+    }).catch(() => {});
+
     // Fire push notifications (non-blocking)
     const fmt = (n: number) => n.toLocaleString("pt-AO") + " AOA";
     const senderName = (user.user_metadata as any)?.username || user.email?.split("@")[0] || "alguém";
