@@ -65,6 +65,12 @@ serve(async (req) => {
       });
     }
 
+    if ((security as any)?.is_banned) {
+      return new Response(JSON.stringify({ error: "Conta suspensa pelo sistema de segurança." }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Find receiver by username or UUID
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const identifier = receiver_identifier.replace(/^@/, "");
@@ -158,6 +164,19 @@ serve(async (req) => {
     if (transferError) throw transferError;
 
     console.log(`✅ Transfer ${transfer.id}: ${amount} AOA from ${user.id} to ${receiver.id}`);
+
+    // 🤖 Admin IA: análise de risco em segundo plano
+    const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "";
+    fetch(`${supabaseUrl}/functions/v1/abuse-ai`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: supabaseServiceKey, Authorization: `Bearer ${supabaseServiceKey}` },
+      body: JSON.stringify({
+        user_id: user.id,
+        ip_address: ip,
+        incident_type: "internal_transfer",
+        details: { amount, receiver_id: receiver.id, today_total: todayTotal + amount, daily_limit: dailyLimit },
+      }),
+    }).catch(() => {});
 
     // Fire push notifications (non-blocking)
     const fmt = (n: number) => n.toLocaleString("pt-AO") + " AOA";

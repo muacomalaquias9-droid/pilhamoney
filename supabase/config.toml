@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.send-push]
 verify_jwt = false
+
+[functions.security-guard]
+verify_jwt = false
+
+[functions.abuse-ai]
+verify_jwt = false
